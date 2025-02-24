@@ -5,7 +5,7 @@ openapi: 3.0.0
 info:
   title: API Documentation
   description: Documentation de l'API pour OPIB.
-  version: 1.0.0
+  version: 1.0.1
 servers:
   - url: http://localhost:8000/api
     description: Serveur local
@@ -209,3 +209,130 @@ paths:
       responses:
         '204':
           description: Rapport supprimé
+  
+  /results/{id_analyse}:
+    get:
+      summary: Récupérer tous les résultats
+      parameters:
+        - name: id_analyse
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Liste des résultats
+
+    post:
+      summary: Créer un nouveau résultat
+      parameters:
+        - name: id_analyse
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_analyse:
+                  type: integer
+                s1:
+                  type: string
+                s2:
+                  type: string
+                s3:
+                  type: string
+                s4:
+                  type: string
+      responses:
+        '201':
+          description: Résultat créé
+      
+    put:
+      summary: Mettre à jour un résultat
+      parameters:
+        - name: id_analyse
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_analyse:
+                  type: integer
+                s1:
+                  type: string
+                s2:
+                  type: string
+                s3:
+                  type: string
+                s4:
+                  type: string
+      responses:
+        '200':
+          description: Résultat mis à jour
+
+  /pending_analyse/{id_analyse}:
+    get:
+      summary: Récupérer les analyses en attente
+      parameters:
+        - name: id_analyse
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Liste des analyses en attente
+
+    post:
+      summary: Créer une nouvelle analyse en attente
+      parameters:
+        - name: id_analyse
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_analyse:
+                  type: integer
+                id_user:
+                  type: string
+                s1:
+                  type: boolean
+                s2:
+                  type: boolean
+                s3:
+                  type: boolean
+                s4:
+                  type: boolean
+      responses:
+        '201':
+          description: Analyse en attente créée
+
+    delete:
+      summary: Supprimer une analyse en attente
+      parameters:
+        - name: id_analyse
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Analyse en attente supprimée
