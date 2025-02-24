@@ -1,0 +1,157 @@
+openapi: 3.0.0
+info:
+  title: API Documentation
+  description: Documentation de l'API pour OPIB.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/api
+    description: Serveur local
+
+paths:
+  /users:
+    get:
+      summary: Récupérer tous les utilisateurs
+      responses:
+        '200':
+          description: Liste des utilisateurs
+
+    post:
+      summary: Créer un nouvel utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Username:
+                  type: string
+                hash_passwd_b64:
+                  type: string
+      responses:
+        '201':
+          description: Utilisateur créé
+
+  /users/{id_user}:
+    get:
+      summary: Récupérer un utilisateur par ID
+      parameters:
+        - name: id_user
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détails de l'utilisateur
+
+    update:
+      summary: Mettre à jour un utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Username:
+                  type: string
+                hash_passwd_b64:
+                  type: string
+      responses:
+        '200':
+          description: Utilisateur mis à jour
+
+    delete:
+      summary: Supprimer un utilisateur
+      responses:
+        '204':
+          description: Utilisateur supprimé
+
+  /historique/{id_user}:
+    get:
+      summary: Récupérer l'historique des connexions d'un utilisateur
+      parameters:
+        - name: id_user
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Liste des connexions de l'utilisateur
+
+  /rapport/{id_user}:
+    get:
+      summary: Récupérer tous les rapports de l'utilisateur
+      responses:
+        '200':
+          description: Liste des rapports de l'utilisateur
+  
+
+  /rapport/{id_user}/{id_analyse}:
+  
+    get:
+      summary: Récupérer un rapport par ID
+      parameters:
+        - name: id_user
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id_analyse
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Détails du rapport
+      
+    post:
+      summary: Créer un nouveau rapport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_user:
+                  type: string
+                id_analyse:
+                  type: integer
+                name:
+                  type: string
+                encrypted_file_aes:
+                  type: string
+      responses:
+        '201':
+          description: Rapport créé
+
+    update: 
+      summary: Mettre à jour un rapport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_user:
+                  type: string
+                id_analyse:
+                  type: integer
+                name:
+                  type: string
+                encrypted_file_aes:
+                  type: string
+      responses:
+        '200':
+          description: Rapport mis à jour
+
+    delete:
+      summary: Supprimer un rapport
+      responses:
+        '204':
+          description: Rapport supprimé
