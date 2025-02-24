@@ -1,3 +1,6 @@
+# Description: Documentation de l'API pour OPIB.
+# copier coller sur https://editor.swagger.io/ pour visualiser la documentation
+
 openapi: 3.0.0
 info:
   title: API Documentation
@@ -45,8 +48,14 @@ paths:
         '200':
           description: Détails de l'utilisateur
 
-    update:
+    put:
       summary: Mettre à jour un utilisateur
+      parameters:
+        - name: id_user
+          in: path
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -64,6 +73,12 @@ paths:
 
     delete:
       summary: Supprimer un utilisateur
+      parameters:
+        - name: id_user
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '204':
           description: Utilisateur supprimé
@@ -84,13 +99,19 @@ paths:
   /rapport/{id_user}:
     get:
       summary: Récupérer tous les rapports de l'utilisateur
+      parameters:
+        - name: id_user
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Liste des rapports de l'utilisateur
   
 
   /rapport/{id_user}/{id_analyse}:
-  
+
     get:
       summary: Récupérer un rapport par ID
       parameters:
@@ -110,6 +131,17 @@ paths:
       
     post:
       summary: Créer un nouveau rapport
+      parameters:
+        - name: id_user
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id_analyse
+          in: path
+          required: true
+          schema:
+            type: integer
       requestBody:
         required: true
         content:
@@ -129,8 +161,19 @@ paths:
         '201':
           description: Rapport créé
 
-    update: 
+    put: 
       summary: Mettre à jour un rapport
+      parameters:
+        - name: id_user
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id_analyse
+          in: path
+          required: true
+          schema:
+            type: integer
       requestBody:
         required: true
         content:
@@ -152,6 +195,17 @@ paths:
 
     delete:
       summary: Supprimer un rapport
+      parameters:
+        - name: id_user
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id_analyse
+          in: path
+          required: true
+          schema:
+            type: integer
       responses:
         '204':
           description: Rapport supprimé
