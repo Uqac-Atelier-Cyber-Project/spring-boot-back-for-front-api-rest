@@ -1,21 +1,38 @@
 package com.uqac.back_for_front.models;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 
 @Entity
-@Getter
-@Setter
-@Table(name = "users")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;  // Identifiant unique de l'utilisateur
+    
+    private String email;  // Email de l'utilisateur
+    private String password;  // Mot de passe
 
-    @Column(unique = true, nullable = false)
-    private String email;
+    // Getters et Setters
+    public String getId() {
+        return id;
+    }
 
-    @Column(nullable = false)
-    private String hashPasswdB64;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }
