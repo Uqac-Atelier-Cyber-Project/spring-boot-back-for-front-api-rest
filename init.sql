@@ -5,10 +5,9 @@
 #------------------------------------------------------------
 
 CREATE TABLE User(
-        id_user         Varchar (50) NOT NULL,
-        Username        Varchar (50) NOT NULL,
+        user_email      Varchar (325) NOT NULL,
         hash_passwd_b64 Varchar (50) NOT NULL,
-        CONSTRAINT User_PK PRIMARY KEY (id_user)
+        CONSTRAINT User_PK PRIMARY KEY (user_email)
 ) ENGINE=InnoDB;
 
 #------------------------------------------------------------
@@ -17,12 +16,12 @@ CREATE TABLE User(
 
 CREATE TABLE historique_connexion(
         id_connexion Int AUTO_INCREMENT NOT NULL,
-        id_user      Varchar (50) NOT NULL,
+        user_email   Varchar (325) NOT NULL,
         timestamp    TimeStamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         location     Varchar (50) NOT NULL,
         plateforme   Varchar (50) NOT NULL,
         CONSTRAINT historique_connexion_PK PRIMARY KEY (id_connexion),
-        CONSTRAINT historique_connexion_User_FK FOREIGN KEY (id_user) REFERENCES User(id_user) ON DELETE CASCADE
+        CONSTRAINT historique_connexion_User_FK FOREIGN KEY (user_email) REFERENCES User(user_email) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 #------------------------------------------------------------
@@ -31,13 +30,13 @@ CREATE TABLE historique_connexion(
 
 CREATE TABLE rapport(
         id_analyse         Int NOT NULL AUTO_INCREMENT,
-        id_user            Varchar (50) NOT NULL,
+        user_email         Varchar (325) NOT NULL,
         name               Varchar (50),
         encrypted_file_aes Varchar (50),
         isreaded           Bool NOT NULL DEFAULT FALSE,
         date_declanchement TimeStamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT rapport_PK PRIMARY KEY (id_analyse),
-        CONSTRAINT rapport_User_FK FOREIGN KEY (id_user) REFERENCES User(id_user) ON DELETE CASCADE
+        CONSTRAINT rapport_User_FK FOREIGN KEY (user_email) REFERENCES User(user_email) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 #------------------------------------------------------------
@@ -46,14 +45,14 @@ CREATE TABLE rapport(
 
 CREATE TABLE pending_analyse(
         id_analyse Int NOT NULL,
-        id_user    Varchar (50) NOT NULL,
+        user_email Varchar (325) NOT NULL,
         s1         Bool NOT NULL,
         s2         Bool NOT NULL,
         s3         Bool NOT NULL,
         s4         Bool NOT NULL,
         CONSTRAINT pending_analyse_rapport_FK FOREIGN KEY (id_analyse) REFERENCES rapport(id_analyse) ON DELETE CASCADE,
         CONSTRAINT pending_analyse_PK PRIMARY KEY (id_analyse),
-        CONSTRAINT pending_analyse_User_FK FOREIGN KEY (id_user) REFERENCES User(id_user) ON DELETE CASCADE
+        CONSTRAINT pending_analyse_User_FK FOREIGN KEY (user_email) REFERENCES User(user_email) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 
