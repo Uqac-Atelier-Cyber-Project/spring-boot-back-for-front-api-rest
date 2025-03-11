@@ -29,6 +29,11 @@ public class ReportController {
         return ResponseEntity.ok(reportService.userReports(request));
     }
 
+    /**
+     * change isread aribute from a given report
+     * @param request ReportRequest
+     * @return 200 ok
+     */
     @PostMapping("/report-read")
     public ResponseEntity<String> reportRead(@RequestBody ReportRequest request) {
         return ResponseEntity.ok(reportService.reportRead(request));
