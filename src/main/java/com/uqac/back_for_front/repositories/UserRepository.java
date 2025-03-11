@@ -1,11 +1,12 @@
 package com.uqac.back_for_front.repositories;
 
-import java.util.Optional;
 
+import com.uqac.back_for_front.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.uqac.back_for_front.models.User;
+import java.util.Optional;
+import java.util.UUID;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
 }
