@@ -6,10 +6,10 @@ import java.util.List;
 
 @Getter
 @Setter
-public class ReportResponse {
+public class ReportsResponse {
     private List<Report> reports;
 
-    public ReportResponse(List<Report> reports) {
+    public ReportsResponse(List<Report> reports) {
         this.reports = reports;
     }
 

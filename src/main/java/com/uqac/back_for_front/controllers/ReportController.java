@@ -1,8 +1,9 @@
 package com.uqac.back_for_front.controllers;
 
 
+import com.uqac.back_for_front.dto.ReportRequest;
 import com.uqac.back_for_front.dto.ReportsRequest;
-import com.uqac.back_for_front.dto.ReportResponse;
+import com.uqac.back_for_front.dto.ReportsResponse;
 import com.uqac.back_for_front.services.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +22,15 @@ public class ReportController {
     /**
      * get all reports for a given user
      * @param request UserReportsRequest
-     * @return ResponseEntity<UserResponse>
+     * @return ResponseEntity<reportsResponse>
      */
     @PostMapping("/UserReports")
-    public ResponseEntity<ReportResponse> userReports(@RequestBody ReportsRequest request) {
+    public ResponseEntity<ReportsResponse> userReports(@RequestBody ReportsRequest request) {
         return ResponseEntity.ok(reportService.userReports(request));
+    }
+
+    @PostMapping("/report-read")
+    public ResponseEntity<String> reportRead(@RequestBody ReportRequest request) {
+        return ResponseEntity.ok(reportService.reportRead(request));
     }
 }
