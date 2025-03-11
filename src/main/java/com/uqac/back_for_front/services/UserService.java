@@ -18,6 +18,11 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder; // Utilisé pour encoder les mots de passe
 
+    /**
+     * Enregistre un nouvel utilisateur
+     * @param request Requête d'enregistrement
+     * @return Message de succès
+     */
     public String register(RegisterRequest request) {
         // Vérifie si l'email est déjà utilisé
         Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
@@ -35,6 +40,11 @@ public class UserService {
         return "Utilisateur enregistré avec succès!";
     }
 
+    /**
+     * Connecte un utilisateur
+     * @param request Requête de connexion
+     * @return Réponse de connexion
+     */
     public UserResponse login(LoginRequest request) {
         // Vérifier si l'utilisateur existe
         User user = userRepository.findByEmail(request.getEmail())

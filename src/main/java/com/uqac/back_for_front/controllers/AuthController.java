@@ -16,11 +16,22 @@ public class AuthController {
 
     private final UserService userService;
 
+    /**
+     * Register a new user
+     * @param request RegisterRequest
+     * @return ResponseEntity<String>
+     */
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
         return ResponseEntity.ok(userService.register(request));
     }
 
+
+    /**
+     * Login a user
+     * @param request LoginRequest
+     * @return ResponseEntity<UserResponse>
+     */
     @PostMapping("/login")
     public ResponseEntity<UserResponse> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(userService.login(request));
