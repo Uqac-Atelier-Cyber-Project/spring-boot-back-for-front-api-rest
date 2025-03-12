@@ -20,7 +20,7 @@ public class ConHistoryService {
 
     public HistoryResponse history(HistoryRequest request) {
         UUID userId = request.getUserId(); // Extraction de l'ID utilisateur depuis la requête
-
+        // TODO : verifier les attributs necessaires
         List<LoginHistory> connections = conhistoryRepository.findByUserId(userId); // recuperation de toutes les connexion d'un user
 
         return new HistoryResponse(connections);

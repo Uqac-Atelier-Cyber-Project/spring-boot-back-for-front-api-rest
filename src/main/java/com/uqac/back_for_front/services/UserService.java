@@ -2,9 +2,13 @@ package com.uqac.back_for_front.services;
 
 import com.uqac.back_for_front.dto.LoginRequest;
 import com.uqac.back_for_front.dto.RegisterRequest;
+import com.uqac.back_for_front.dto.UserDataRequest;
 import com.uqac.back_for_front.dto.UserResponse;
 import com.uqac.back_for_front.entity.User;
 import com.uqac.back_for_front.repositories.UserRepository;
+
+
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -57,4 +61,31 @@ public class UserService {
 
         return new UserResponse(user.getUserId(), user.getEmail());
     }
+
+    /**
+     * Met à jour les informations de l'utilisateur
+     * @param request Requête contenant les nouvelles informations
+     * @return Les informations mises à jour de l'utilisateur
+     */
+    public UserResponse userData(UserDataRequest request) {
+        // Rechercher l'utilisateur par ID
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé"));
+
+        // Mettre à jour les champs fournis
+        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+            user.setEmail(request.getEmail());
+        }
+
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            user.setPasswordHash(passwordEncoder.encode(request.getPassword())); // Hash du mot de passe
+        }
+
+        // Sauvegarde en base de données
+        userRepository.save(user);
+
+        // Retourne la réponse
+        return new UserResponse(user.getUserId(), user.getEmail());
+    }
+
 }

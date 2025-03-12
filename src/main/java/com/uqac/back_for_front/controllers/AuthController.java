@@ -4,6 +4,7 @@ package com.uqac.back_for_front.controllers;
 import com.uqac.back_for_front.dto.LoginRequest;
 import com.uqac.back_for_front.dto.RegisterRequest;
 import com.uqac.back_for_front.dto.UserResponse;
+import com.uqac.back_for_front.dto.UserDataRequest;
 import com.uqac.back_for_front.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,5 +36,15 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<UserResponse> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(userService.login(request));
+    }
+
+    /**
+     * get user data
+     * @param request
+     * @return
+     */
+    @PostMapping("/userData")
+    public ResponseEntity<UserResponse> userData(@RequestBody UserDataRequest request){
+        return ResponseEntity.ok(userService.userData(request));
     }
 }
