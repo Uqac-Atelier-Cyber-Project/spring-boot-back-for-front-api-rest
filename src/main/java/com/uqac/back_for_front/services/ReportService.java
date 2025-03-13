@@ -1,32 +1,48 @@
 package com.uqac.back_for_front.services;
 
+import com.uqac.back_for_front.dto.ReportsRequest;
+import com.uqac.back_for_front.dto.ReportRequest;
+import com.uqac.back_for_front.entity.Report;
+import com.uqac.back_for_front.repositories.ReportRepository;
+import com.uqac.back_for_front.dto.ReportsResponse;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Optional;
+
+
 @Service
+@RequiredArgsConstructor
 public class ReportService {
 
-            /* TODO : remplir methodes */ 
+    private final ReportRepository ReportRepository;
 
-    // private final ReportRepository ReportRepository;
+    public ReportsResponse userReports(ReportsRequest request) {
+        // Récupération des rapports de l'utilisateur donné
+        // TODO : verifier les attributs necessaires
+        List<Report> reports = ReportRepository.findByUserId(request.getUserId());
+
+        // Création de la réponse
+        return new ReportsResponse(reports);
+    }
+
+    public String reportRead(ReportRequest request) {
+        Long reportId = request.getReport_id(); // Récupération de l'ID depuis l'objet request
+
+        Optional<Report> optionalReport = ReportRepository.findByReportId(reportId);
+
+        if (optionalReport.isPresent()) {
+            Report report = optionalReport.get();
+            report.setIsRead(true); // Marquer comme lu
+            ReportRepository.save(report); // Sauvegarder la mise à jour
+            return "Le rapport a été marqué comme lu.";
+        } else {
+            return "Rapport non trouvé.";
+        }
+    }
 
 
-    // public UserService(UserRepository userRepository) {
-    //     this.userRepository = userRepository;
-    // }
 
-    // public boolean registerUser(String email, String hashPasswdB64) {
-    //     if (userRepository.findByEmail(email).isPresent()) {
-    //         return false;
-    //     }
-    //     User user = new User();
-    //     user.setEmail(email);
-    //     user.setHashPasswdB64(hashPasswdB64);
-    //     userRepository.save(user);
-    //     return true;
-    // }
-
-    // public boolean authenticateUser(String email, String hashPasswdB64) {
-    //     Optional<User> user = userRepository.findByEmail(email);
-    //     return user.map(value -> value.getHashPasswdB64().equals(hashPasswdB64)).orElse(false);
-    // }
 }

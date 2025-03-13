@@ -15,75 +15,69 @@ metadata:
   name: mysql-initdb-config
 data:
   init.sql: |
-    -- TODO : modifier les valeurs des varchars (default 50) 
-
-    #------------------------------------------------------------
-    # Table: User
-    #------------------------------------------------------------
-
-    CREATE TABLE User(
-                         user_email      VARCHAR(325) NOT NULL,
-                         hash_passwd_b64 VARCHAR(50) NOT NULL,
-                         CONSTRAINT User_PK PRIMARY KEY (user_email)
+    -- ------------------------------------------------------------
+    -- Table: users
+    -- ------------------------------------------------------------
+    CREATE TABLE users (
+    user_id        BINARY(16) NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
+    email          VARCHAR(320) NOT NULL UNIQUE,
+    password_hash  VARCHAR(255) NOT NULL,
+    CONSTRAINT users_PK PRIMARY KEY (user_id)
     ) ENGINE=InnoDB;
-
-    #------------------------------------------------------------
-    # Table: historique_connexion
-    #-----------------------------------------------------------
-
-    CREATE TABLE historique_connexion(
-                                         id_connexion INT AUTO_INCREMENT NOT NULL,
-                                         user_email   VARCHAR(325) NOT NULL,
-                                         timestamp    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                         location     VARCHAR(50) NOT NULL,
-                                         plateforme   VARCHAR(50) NOT NULL,
-                                         CONSTRAINT historique_connexion_PK PRIMARY KEY (id_connexion),
-                                         CONSTRAINT historique_connexion_User_FK FOREIGN KEY (user_email) REFERENCES User(user_email) ON DELETE CASCADE
+  
+    -- ------------------------------------------------------------
+    -- Table: login_history
+    -- ------------------------------------------------------------
+    CREATE TABLE login_history (
+    login_id    INT AUTO_INCREMENT NOT NULL,
+    user_id     BINARY(16) NOT NULL,
+    login_time  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    location    VARCHAR(100) NOT NULL,
+    platform    VARCHAR(100) NOT NULL,
+    CONSTRAINT login_history_PK PRIMARY KEY (login_id),
+    CONSTRAINT login_history_users_FK FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
     ) ENGINE=InnoDB;
-
-    #------------------------------------------------------------
-    # Table: rapport
-    #------------------------------------------------------------
-
-    CREATE TABLE rapport(
-                            id_analyse         INT NOT NULL AUTO_INCREMENT,
-                            user_email         VARCHAR(325) NOT NULL,
-                            name               VARCHAR(50),
-                            encrypted_file_aes VARCHAR(50),
-                            isreaded           BOOL NOT NULL DEFAULT FALSE,
-                            date_declanchement TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                            CONSTRAINT rapport_PK PRIMARY KEY (id_analyse),
-                            CONSTRAINT rapport_User_FK FOREIGN KEY (user_email) REFERENCES User(user_email) ON DELETE CASCADE
+  
+    -- ------------------------------------------------------------
+    -- Table: reports
+    -- ------------------------------------------------------------
+    CREATE TABLE reports (
+    report_id        INT NOT NULL AUTO_INCREMENT,
+    user_id          BINARY(16) NOT NULL,
+    report_name      VARCHAR(255),
+    encrypted_file   VARCHAR(255),
+    is_read          TINYINT(1) NOT NULL DEFAULT 0,
+    trigger_date     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT reports_PK PRIMARY KEY (report_id),
+    CONSTRAINT reports_users_FK FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
     ) ENGINE=InnoDB;
-
-    #------------------------------------------------------------
-    # Table: pending_analyse
-    #------------------------------------------------------------
-
-    CREATE TABLE pending_analyse(
-                                    id_analyse INT NOT NULL,
-                                    user_email VARCHAR(325) NOT NULL,
-                                    s1         BOOL NOT NULL,
-                                    s2         BOOL NOT NULL,
-                                    s3         BOOL NOT NULL,
-                                    s4         BOOL NOT NULL,
-                                    CONSTRAINT pending_analyse_rapport_FK FOREIGN KEY (id_analyse) REFERENCES rapport(id_analyse) ON DELETE CASCADE,
-                                    CONSTRAINT pending_analyse_PK PRIMARY KEY (id_analyse),
-                                    CONSTRAINT pending_analyse_User_FK FOREIGN KEY (user_email) REFERENCES User(user_email) ON DELETE CASCADE
+    
+    -- ------------------------------------------------------------
+    -- Table: pending_analyses
+    -- ------------------------------------------------------------
+    CREATE TABLE pending_analyses (
+    report_id  INT NOT NULL,
+    user_id    BINARY(16) NOT NULL,
+    step1      TINYINT(1) NOT NULL,
+    step2      TINYINT(1) NOT NULL,
+    step3      TINYINT(1) NOT NULL,
+    step4      TINYINT(1) NOT NULL,
+    CONSTRAINT pending_analyses_PK PRIMARY KEY (report_id),
+    CONSTRAINT pending_analyses_reports_FK FOREIGN KEY (report_id) REFERENCES reports(report_id) ON DELETE CASCADE,
+    CONSTRAINT pending_analyses_users_FK FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
     ) ENGINE=InnoDB;
-
-    #------------------------------------------------------------
-    # Table: results
-    #------------------------------------------------------------
-
-    CREATE TABLE results(
-                            id_analyse INT NOT NULL,
-                            s1         VARCHAR(50) NOT NULL,
-                            s2         VARCHAR(50) NOT NULL,
-                            s3         VARCHAR(50) NOT NULL,
-                            s4         VARCHAR(50) NOT NULL,
-                            CONSTRAINT results_rapport_FK FOREIGN KEY (id_analyse) REFERENCES rapport(id_analyse) ON DELETE CASCADE,
-                            CONSTRAINT results_PK PRIMARY KEY (id_analyse)
+    
+    -- ------------------------------------------------------------
+    -- Table: results
+    -- ------------------------------------------------------------
+    CREATE TABLE results (
+    report_id  INT NOT NULL,
+    step1      VARCHAR(255) NOT NULL,
+    step2      VARCHAR(255) NOT NULL,
+    step3      VARCHAR(255) NOT NULL,
+    step4      VARCHAR(255) NOT NULL,
+    CONSTRAINT results_PK PRIMARY KEY (report_id),
+    CONSTRAINT results_reports_FK FOREIGN KEY (report_id) REFERENCES reports(report_id) ON DELETE CASCADE
     ) ENGINE=InnoDB;
 ---
 apiVersion: apps/v1
