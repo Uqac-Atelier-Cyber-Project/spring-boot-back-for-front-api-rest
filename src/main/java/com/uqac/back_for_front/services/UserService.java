@@ -2,8 +2,9 @@ package com.uqac.back_for_front.services;
 
 import com.uqac.back_for_front.dto.LoginRequest;
 import com.uqac.back_for_front.dto.RegisterRequest;
-import com.uqac.back_for_front.dto.UserDataRequest;
+import com.uqac.back_for_front.dto.UserRequest;
 import com.uqac.back_for_front.dto.UserResponse;
+import com.uqac.back_for_front.dto.UpdateProfileRequest;
 import com.uqac.back_for_front.entity.User;
 import com.uqac.back_for_front.repositories.UserRepository;
 
@@ -63,11 +64,26 @@ public class UserService {
     }
 
     /**
+     * recuperer les informations de l'utilisateur
+     * @param request Requête contenant l'id user
+     * @return Les informations de l'utilisateur
+     */
+    public UserResponse userData(UserRequest request) {
+        // Rechercher l'utilisateur par ID
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé"));
+
+        // Retourne la réponse
+        return new UserResponse(user.getUserId(), user.getEmail());
+    }
+
+
+    /**
      * Met à jour les informations de l'utilisateur
      * @param request Requête contenant les nouvelles informations
      * @return Les informations mises à jour de l'utilisateur
      */
-    public UserResponse userData(UserDataRequest request) {
+    public UserResponse updateProfile(UpdateProfileRequest request) {
         // Rechercher l'utilisateur par ID
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé"));

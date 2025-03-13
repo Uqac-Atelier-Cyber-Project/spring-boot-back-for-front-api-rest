@@ -6,7 +6,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class UserDataRequest {
+public class UpdateProfileRequest {
     //@NotNull
     private UUID userId;
 
