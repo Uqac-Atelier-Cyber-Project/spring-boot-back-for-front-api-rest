@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 
 @Service
@@ -30,9 +29,9 @@ public class ReportService {
     }
 
     public String reportRead(ReportRequest request) {
-        UUID reportId = request.getReport_id(); // Récupération de l'ID depuis l'objet request
+        Long reportId = request.getReport_id(); // Récupération de l'ID depuis l'objet request
 
-        Optional<Report> optionalReport = ReportRepository.findById(reportId);
+        Optional<Report> optionalReport = ReportRepository.findByReportId(reportId);
 
         if (optionalReport.isPresent()) {
             Report report = optionalReport.get();

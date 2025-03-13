@@ -8,5 +8,5 @@ import java.util.UUID;
 @Getter
 @Setter
 public class ReportRequest {
-    private UUID report_id;
+    private Long report_id;
 }

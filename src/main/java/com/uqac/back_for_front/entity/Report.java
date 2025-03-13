@@ -4,6 +4,8 @@ package com.uqac.back_for_front.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "reports")
 @Getter
@@ -18,9 +20,8 @@ public class Report {
     @Column(name = "report_id", nullable = false)
     private Long reportId;
 
-    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private UUID userId;
 
     @Column(name = "report_name", length = 255)
     private String reportName;
