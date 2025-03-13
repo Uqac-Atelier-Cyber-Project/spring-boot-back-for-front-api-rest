@@ -1,37 +1,31 @@
 package com.uqac.back_for_front.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.uqac.back_for_front.models.User;
 import com.uqac.back_for_front.repositories.UserRepository;
+import org.springframework.stereotype.Service;
+import java.util.Optional;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
 
-    @Autowired
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    public User createUser(User user) {
-        // Logique métier avant l'enregistrement (exemple : validation, hachage du mot de passe, etc.)
-        if (user.getEmail() == null || user.getPassword() == null) {
-            throw new IllegalArgumentException("Email et mot de passe sont requis");
+    public boolean registerUser(String email, String hashPasswdB64) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            return false;
         }
-        return userRepository.save(user);  // Enregistrement de l'utilisateur dans la base
+        User user = new User();
+        user.setEmail(email);
+        user.setHashPasswdB64(hashPasswdB64);
+        userRepository.save(user);
+        return true;
     }
 
-    public User getUserByEmail(String email) {
-        // Logique métier ou récupération simple
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));  // Recherche dans la base de données
-    }
-
-    public String getUserEmail(String email) {
-        return userRepository.findByEmail(email)
-                .map(User::getEmail)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+    public boolean authenticateUser(String email, String hashPasswdB64) {
+        Optional<User> user = userRepository.findByEmail(email);
+        return user.map(value -> value.getHashPasswdB64().equals(hashPasswdB64)).orElse(false);
     }
 }
