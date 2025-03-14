@@ -33,5 +33,5 @@ public class Report {
     private Boolean isRead = false;
 
     @Column(name = "trigger_date", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private java.time.Instant triggerDate;
+    private java.time.Instant triggerDate = java.time.Instant.now();
 }

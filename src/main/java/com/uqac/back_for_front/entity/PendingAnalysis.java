@@ -3,6 +3,8 @@ package com.uqac.back_for_front.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "pending_analyses")
 @Getter
@@ -13,17 +15,19 @@ import lombok.*;
 public class PendingAnalysis {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @Column(name = "report_id", nullable = false)
     private Long reportId;
 
-    @OneToOne
+    /*@OneToOne
     @MapsId
     @JoinColumn(name = "report_id")
-    private Report report;
+    private Report report;*/
 
-    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private UUID user;
 
     @Column(name = "step1", nullable = false)
     private Boolean step1;

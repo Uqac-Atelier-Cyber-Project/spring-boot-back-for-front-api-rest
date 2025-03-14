@@ -13,23 +13,21 @@ import lombok.*;
 public class Result {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @Column(name = "report_id", nullable = false)
     private Long reportId;
 
-    @OneToOne
-    @MapsId
-    @JoinColumn(name = "report_id")
-    private Report report;
-
-    @Column(name = "step1", nullable = false, length = 255)
+    @Column(name = "step1", nullable = true, length = 255)
     private String step1;
 
-    @Column(name = "step2", nullable = false, length = 255)
+    @Column(name = "step2", nullable = true, length = 255)
     private String step2;
 
-    @Column(name = "step3", nullable = false, length = 255)
+    @Column(name = "step3", nullable = true, length = 255)
     private String step3;
 
-    @Column(name = "step4", nullable = false, length = 255)
+    @Column(name = "step4", nullable = true, length = 255)
     private String step4;
 }
