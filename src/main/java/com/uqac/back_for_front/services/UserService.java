@@ -1,11 +1,9 @@
 package com.uqac.back_for_front.services;
 
-import com.uqac.back_for_front.dto.LoginRequest;
-import com.uqac.back_for_front.dto.RegisterRequest;
-import com.uqac.back_for_front.dto.UserRequest;
-import com.uqac.back_for_front.dto.UserResponse;
-import com.uqac.back_for_front.dto.UpdateProfileRequest;
+import com.uqac.back_for_front.dto.*;
+import com.uqac.back_for_front.entity.LoginHistory;
 import com.uqac.back_for_front.entity.User;
+import com.uqac.back_for_front.repositories.LoginHistoryRepository;
 import com.uqac.back_for_front.repositories.UserRepository;
 
 
@@ -21,6 +19,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final LoginHistoryRepository loginHistoryRepository;
     private final PasswordEncoder passwordEncoder; // Utilisé pour encoder les mots de passe
 
     /**
@@ -59,6 +58,17 @@ public class UserService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new IllegalStateException("Mot de passe incorrect");
         }
+
+        // enregistrer la connexion
+        // TODO : s'assurer que la requette est bien rempli par le front
+        LoginHistory loginHistory = LoginHistory.builder()
+            .user(user.getUserId())
+            .location(request.getLocation())
+            .platform(request.getPlatform())
+            .loginTime(java.time.Instant.now())
+            .build();
+        loginHistoryRepository.save(loginHistory);
+
 
         return new UserResponse(user.getUserId(), user.getEmail());
     }
@@ -104,4 +114,21 @@ public class UserService {
         return new UserResponse(user.getUserId(), user.getEmail());
     }
 
+    /**
+     * Récupérer l'historique de connexion de l'utilisateur
+     * @param request Requête contenant l'id de l'utilisateur
+     * @return L'historique de connexion de l'utilisateur
+     */
+    public LoginHistoryResponse loginHistory(LoginHistoryRequest request) {
+        //verifier si l'utilisateur existe
+        if (request.getUser() != null) {
+            // Rechercher l'utilisateur par ID
+            User user = userRepository.findById(request.getUser())
+                    .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé"));
+
+            // Rechercher l'historique de connexion de l'utilisateur
+            return new LoginHistoryResponse(loginHistoryRepository.findByUser(user.getUserId()));
+        }
+        return null;
+    }
 }

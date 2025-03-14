@@ -15,7 +15,7 @@ public class AuthController {
     private final UserService userService;
 
     /**
-     * Register a new user
+     * creer un nouvel utilisateur
      * @param request RegisterRequest
      * @return ResponseEntity<String>
      */
@@ -26,13 +26,18 @@ public class AuthController {
 
 
     /**
-     * Login a user
+     * connecter un utilisateur
      * @param request LoginRequest
      * @return ResponseEntity<UserResponse>
      */
     @PostMapping("/login")
     public ResponseEntity<UserResponse> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(userService.login(request));
+    }
+
+    @PostMapping("/loginHistory")
+    public ResponseEntity<LoginHistoryResponse> loginHistory(@RequestBody LoginHistoryRequest request){
+        return ResponseEntity.ok(userService.loginHistory(request));
     }
 
     /**
