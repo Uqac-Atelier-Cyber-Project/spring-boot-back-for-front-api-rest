@@ -3,6 +3,8 @@ package com.uqac.back_for_front.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "login_history")
 @Getter
@@ -17,16 +19,15 @@ public class LoginHistory {
     @Column(name = "login_id", nullable = false)
     private Long loginId;
 
-    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private UUID user;
 
     @Column(name = "login_time", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private java.time.Instant loginTime;
+    private java.time.Instant loginTime = java.time.Instant.now();
 
-    @Column(name = "location", nullable = false, length = 100)
+    @Column(name = "location", /*nullable = false,*/ length = 100)
     private String location;
 
-    @Column(name = "platform", nullable = false, length = 100)
+    @Column(name = "platform", /*nullable = false,*/ length = 100)
     private String platform;
 }
