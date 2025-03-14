@@ -27,7 +27,7 @@ public class UserService {
      * @param request Requête d'enregistrement
      * @return Message de succès
      */
-    public String register(RegisterRequest request) {
+    public UserResponse register(RegisterRequest request) {
         // Vérifie si l'email est déjà utilisé
         Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
         if (existingUser.isPresent()) {
@@ -41,7 +41,7 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
-        return "Utilisateur enregistré avec succès!";
+        return new UserResponse(user.getUserId(), user.getEmail());
     }
 
     /**

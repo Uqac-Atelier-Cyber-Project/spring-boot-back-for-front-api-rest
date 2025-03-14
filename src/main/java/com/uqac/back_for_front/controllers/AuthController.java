@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "http://localhost:8080")
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -20,7 +21,8 @@ public class AuthController {
      * @return ResponseEntity<String>
      */
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<UserResponse> register(@RequestBody RegisterRequest request) {
+        System.out.println("Email: " + request.getEmail());
         return ResponseEntity.ok(userService.register(request));
     }
 
