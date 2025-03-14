@@ -18,6 +18,7 @@ public interface ReportRepository extends JpaRepository<Report, UUID> {
     Optional<Report> findByReportId(Long reportId);
 
 
+
 }
 
 
