@@ -14,20 +14,13 @@ import java.util.UUID;
 @Builder
 public class PendingAnalysis {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "report_id", nullable = false)
     private Long reportId;
-
-    /*@OneToOne
-    @MapsId
-    @JoinColumn(name = "report_id")
-    private Report report;*/
-
-    @JoinColumn(name = "user_id", nullable = false)
-    private UUID user;
 
     @Column(name = "step1", nullable = false)
     private Boolean step1;

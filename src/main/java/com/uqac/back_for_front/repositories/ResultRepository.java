@@ -10,5 +10,6 @@ import java.util.UUID;
  * Interface ResultRepository
  */
 public interface ResultRepository extends JpaRepository<Result, UUID> {
-    List<Object> findByReportId(Long reportId);
+    List<Result> findByReportId(Long reportId);
+
 }
