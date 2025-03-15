@@ -51,4 +51,9 @@ public class AuthController {
     public ResponseEntity<UserResponse> updateProfile(@RequestBody UpdateProfileRequest request){
         return ResponseEntity.ok(userService.updateProfile(request));
     }
+
+    @PostMapping("/connectionHistory")
+    public ResponseEntity<LoginHistoryResponse> loginHistory(@RequestBody LoginHistoryRequest request){
+        return ResponseEntity.ok(userService.loginHistory(request));
+    }
 }

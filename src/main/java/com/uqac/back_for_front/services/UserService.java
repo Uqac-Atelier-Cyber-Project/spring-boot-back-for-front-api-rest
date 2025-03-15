@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -132,13 +133,10 @@ public class UserService {
     public LoginHistoryResponse loginHistory(LoginHistoryRequest request) {
         //verifier si l'utilisateur existe
         if (request.getUser() != null) {
-            // Rechercher l'utilisateur par ID
-            User user = userRepository.findById(request.getUser())
-                    .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé"));
+            List<LoginHistory> loginHistoryList = loginHistoryRepository.findByUser(request.getUser());
 
-            // Rechercher l'historique de connexion de l'utilisateur
-            return new LoginHistoryResponse(loginHistoryRepository.findByUser(user.getUserId()));
+            return new LoginHistoryResponse(loginHistoryList);
         }
-        return null;
+        return new LoginHistoryResponse(null);
     }
 }
