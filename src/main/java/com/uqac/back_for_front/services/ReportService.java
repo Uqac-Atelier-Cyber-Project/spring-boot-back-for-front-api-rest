@@ -27,7 +27,7 @@ public class ReportService {
     private final ResultRepository resultRepository;
     private final RestTemplate restTemplate;
     private static final Logger logger = Logger.getLogger(ReportService.class.getName());
-
+    private static final int MAX_STEP3_LENGTH = 4000; // Define the maximum length for step3
     /**
      * recuperer tous les rapports pour un utilisateur donné
      * @param request ReportsRequest
@@ -120,7 +120,7 @@ public class ReportService {
 
         ServiceRequest serviceRequest = new ServiceRequest();
 
-        String[] UrlsServices = {"http://localhost:8082/api/execute-cpp", "http://localhost:8083/api/execute-cpp", "http://localhost:8084/urlModuleBfwifi", "http://localhost:8085/urlModuleCVE"};
+        String[] UrlsServices = {"http://localhost:8082/api/execute-cpp", "http://localhost:8083/api/execute-cpp", "http://localhost:8084/api/attack", "http://localhost:8085/urlModuleCVE"};
 
         for (int i = 0; i < 4; i++) {
             if (request.getOptions().get(i).isValue()) {
@@ -222,11 +222,41 @@ public class ReportService {
      * @return BffWifiResponse
      */
     public BffWifiResponse bffwifi(BffWifiRequest request) {
-        // stokage des resultats du module brutefrcessh
-        Result result = (Result) resultRepository.findByReportId(request.getReportId());
-        result.setStep3("le resultat du module bruteforceWifi");
+
+        // Retrieve the list of results for the given report ID
+        List<Result> results = resultRepository.findByReportId(request.getReportId());
+
+        if (results.isEmpty()) {
+            // Handle the case where no results are found
+            return BffWifiResponse.builder().message("No results found for the given report ID").build();
+        }
+
+        // Assuming you want to update the first result in the list
+        Result result = results.getFirst();
+        String logContent = request.getLogContent();
+
+        // Truncate the log content if it exceeds the maximum length
+        if (logContent.length() > MAX_STEP3_LENGTH) {
+            logContent = logContent.substring(logContent.length() - MAX_STEP3_LENGTH);
+        }
+
+        result.setStep3(logContent);
+
+        // Update the result in the repository
         resultRepository.save(result);
-        return null;
+
+        // Update the PendingAnalysis step3 to true
+        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(request.getReportId());
+
+        if (optionalPendingAnalysis.isPresent()) {
+            PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
+            pendingAnalysis.setStep3(true);
+            pendingAnalysisRepository.save(pendingAnalysis);
+        } else {
+            return BffWifiResponse.builder().message("PendingAnalysis not found").build();
+        }
+
+        return BffWifiResponse.builder().message("Bruteforce SSH request submitted successfully").build();
     }
 
     /**
