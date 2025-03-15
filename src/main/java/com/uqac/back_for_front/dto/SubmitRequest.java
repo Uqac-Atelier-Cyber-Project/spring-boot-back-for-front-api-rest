@@ -14,4 +14,5 @@ import com.uqac.back_for_front.entity.SubmitOption;
 public class SubmitRequest {
     private UUID userId;
     private List<SubmitOption> options;
+    private String pdfPassword;
 }

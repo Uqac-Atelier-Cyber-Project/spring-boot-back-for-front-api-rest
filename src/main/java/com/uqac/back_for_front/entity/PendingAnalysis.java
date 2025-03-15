@@ -33,4 +33,7 @@ public class PendingAnalysis {
 
     @Column(name = "step4", nullable = false)
     private Boolean step4;
+
+    @Column(name = "pdfPassword", nullable = false)
+    private String pdfPassword;
 }
