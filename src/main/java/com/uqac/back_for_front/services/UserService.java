@@ -41,6 +41,16 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+
+        // enregistrer la connexion
+        // TODO : s'assurer que la requette est bien rempli par le front
+        LoginHistory loginHistory = LoginHistory.builder()
+                .user(user.getUserId())
+                .location(request.getLocation())
+                .platform(request.getPlatform())
+                .loginTime(java.time.Instant.now())
+                .build();
+        loginHistoryRepository.save(loginHistory);
         return new UserResponse(user.getUserId(), user.getEmail());
     }
 

@@ -96,6 +96,7 @@ public class ReportService {
                 .step2(!request.getOptions().get(1).isValue())
                 .step3(!request.getOptions().get(2).isValue())
                 .step4(!request.getOptions().get(3).isValue())
+                .pdfPassword(request.getPdfPassword())
                 .build();
 
         pendingAnalysisRepository.save(pendingAnalysis);
