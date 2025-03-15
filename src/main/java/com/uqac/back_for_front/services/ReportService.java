@@ -10,10 +10,12 @@ import com.uqac.back_for_front.repositories.ResultRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 
 @Service
@@ -24,7 +26,8 @@ public class ReportService {
     private final PendingAnalysisRepository pendingAnalysisRepository;
     private final ResultRepository resultRepository;
     private final RestTemplate restTemplate;
-
+    private static final Logger logger = Logger.getLogger(ReportService.class.getName());
+    private static final int MAX_STEP3_LENGTH = 4000; // Define the maximum length for step3
     /**
      * recuperer tous les rapports pour un utilisateur donné
      * @param request ReportsRequest
@@ -45,18 +48,32 @@ public class ReportService {
      * @return String
      */
     public String reportRead(ReportRequest request) {
-        Long reportId = request.getReport_id(); // Récupération de l'ID depuis l'objet request
+        Long reportId = request.getReport_id();
 
         Optional<Report> optionalReport = ReportRepository.findByReportId(reportId);
 
         if (optionalReport.isPresent()) {
             Report report = optionalReport.get();
-            report.setIsRead(true); // Marquer comme lu
-            ReportRepository.save(report); // Sauvegarder la mise à jour
-            return "Le rapport a été marqué comme lu.";
+            report.setIsRead(true);
+            ReportRepository.save(report);
         } else {
             return "Rapport non trouvé.";
         }
+
+        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(reportId);
+
+        if (optionalPendingAnalysis.isPresent()) {
+            PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
+            pendingAnalysis.setStep1(true);
+            pendingAnalysis.setStep2(true);
+            pendingAnalysis.setStep3(true);
+            pendingAnalysis.setStep4(true);
+            pendingAnalysisRepository.save(pendingAnalysis);
+        } else {
+            return "PendingAnalysis non trouvé.";
+        }
+
+        return "Rapport marqué comme lu.";
     }
 
     /**
@@ -91,7 +108,6 @@ public class ReportService {
         // Création d'un objet PendingAnalysis
         PendingAnalysis pendingAnalysis = PendingAnalysis.builder()
                 .reportId(report.getReportId())
-                .user(request.getUserId())
                 .step1(!request.getOptions().get(0).isValue())
                 .step2(!request.getOptions().get(1).isValue())
                 .step3(!request.getOptions().get(2).isValue())
@@ -105,13 +121,20 @@ public class ReportService {
 
         ServiceRequest serviceRequest = new ServiceRequest();
 
-        String[] UrlsServices = {"http://localhost:8082/urlModuleScan", "http://localhost:8083/urlModuleBfssh", "http://localhost:8084/urlModuleBfwifi", "http://localhost:8085/urlModuleCVE"};
+        String[] UrlsServices = {"http://localhost:8082/api/execute-cpp", "http://localhost:8083/api/execute-cpp", "http://localhost:8084/api/attack", "http://localhost:8085/urlModuleCVE"};
 
         for (int i = 0; i < 4; i++) {
             if (request.getOptions().get(i).isValue()) {
                 serviceRequest.setReportId(report.getReportId());
-                serviceRequest.setOptions(request.getOptions().get(i));
-                restTemplate.postForObject(UrlsServices[i], serviceRequest, Void.class);
+                serviceRequest.setOption(request.getOptions().get(i).getOption1());
+                try {
+                    restTemplate.postForObject(UrlsServices[i], serviceRequest, String.class);
+                } catch (RestClientException e) {
+                    // Log the error and the response body
+                    System.err.println("Error calling service: " + UrlsServices[i]);
+                    System.err.println("Response body: " + e.getMessage());
+                    throw e; // Re-throw the exception after logging
+                }
             }
         }
 
@@ -125,12 +148,38 @@ public class ReportService {
      * @param request ScanPortsRequest
      * @return ScanPortsResponse
      */
-    public ScanPortsResponse scanPorts(ScanPortsRequest request) {
-        //stockage des resultats du module scan de ports
-        Result result = (Result) resultRepository.findByReportId(request.getReportId());
-        result.setStep1("le resultat du module scan de ports");
+    public ScanPortsResponse scanPorts(PortScanResultDTO request) {
+
+        logger.info(request.toString());
+
+        // Retrieve the list of results for the given report ID
+        List<Result> results = resultRepository.findByReportId(request.getReportId());
+
+        if (results.isEmpty()) {
+            // Handle the case where no results are found
+            return ScanPortsResponse.builder().message("No results found for the given report ID").build();
+        }
+
+        // Assuming you want to update the first result in the list
+        Result result = results.getFirst();
+        result.setStep1(request.toJSon());
+
+        // Update the result in the repository
         resultRepository.save(result);
-        return null;
+
+
+        // Update the PendingAnalysis step2 to true
+        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(request.getReportId());
+
+        if (optionalPendingAnalysis.isPresent()) {
+            PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
+            pendingAnalysis.setStep1(true);
+            pendingAnalysisRepository.save(pendingAnalysis);
+        } else {
+            return ScanPortsResponse.builder().message("PendingAnalysis not found").build();
+        }
+
+        return ScanPortsResponse.builder().message("Bruteforce SSH request submitted successfully").build();
     }
 
     /**
@@ -139,11 +188,33 @@ public class ReportService {
      * @return BfsshResponse
      */
     public BfsshResponse bfssh(BfsshRequest request){
-        // stokage des resultats du module brutefrcessh
-        Result result = (Result) resultRepository.findByReportId(request.getReportId());
-        result.setStep2("le resultat du module bruteforcessh");
+        // Retrieve the list of results for the given report ID
+        List<Result> results = resultRepository.findByReportId(request.getReportId());
+
+        if (results.isEmpty()) {
+            // Handle the case where no results are found
+            return BfsshResponse.builder().message("No results found for the given report ID").build();
+        }
+
+        // Assuming you want to update the first result in the list
+        Result result = results.getFirst();
+        result.setStep2(request.resultJson());
+
+        // Update the result in the repository
         resultRepository.save(result);
-        return null;
+
+        // Update the PendingAnalysis step2 to true
+        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(request.getReportId());
+
+        if (optionalPendingAnalysis.isPresent()) {
+            PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
+            pendingAnalysis.setStep2(true);
+            pendingAnalysisRepository.save(pendingAnalysis);
+        } else {
+            return BfsshResponse.builder().message("PendingAnalysis not found").build();
+        }
+
+        return BfsshResponse.builder().message("Bruteforce SSH request submitted successfully").build();
     }
 
     /**
@@ -152,11 +223,41 @@ public class ReportService {
      * @return BffWifiResponse
      */
     public BffWifiResponse bffwifi(BffWifiRequest request) {
-        // stokage des resultats du module brutefrcessh
-        Result result = (Result) resultRepository.findByReportId(request.getReportId());
-        result.setStep3("le resultat du module bruteforceWifi");
+
+        // Retrieve the list of results for the given report ID
+        List<Result> results = resultRepository.findByReportId(request.getReportId());
+
+        if (results.isEmpty()) {
+            // Handle the case where no results are found
+            return BffWifiResponse.builder().message("No results found for the given report ID").build();
+        }
+
+        // Assuming you want to update the first result in the list
+        Result result = results.getFirst();
+        String logContent = request.getLogContent();
+
+        // Truncate the log content if it exceeds the maximum length
+        if (logContent.length() > MAX_STEP3_LENGTH) {
+            logContent = logContent.substring(logContent.length() - MAX_STEP3_LENGTH);
+        }
+
+        result.setStep3(logContent);
+
+        // Update the result in the repository
         resultRepository.save(result);
-        return null;
+
+        // Update the PendingAnalysis step3 to true
+        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(request.getReportId());
+
+        if (optionalPendingAnalysis.isPresent()) {
+            PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
+            pendingAnalysis.setStep3(true);
+            pendingAnalysisRepository.save(pendingAnalysis);
+        } else {
+            return BffWifiResponse.builder().message("PendingAnalysis not found").build();
+        }
+
+        return BffWifiResponse.builder().message("Bruteforce SSH request submitted successfully").build();
     }
 
     /**

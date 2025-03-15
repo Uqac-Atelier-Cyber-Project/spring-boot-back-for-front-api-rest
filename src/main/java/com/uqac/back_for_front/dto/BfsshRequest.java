@@ -14,4 +14,8 @@ public class BfsshRequest {
     private String error;
     private String user; //username
     private String password;
+
+    public String resultJson() {
+        return "{\"host\":\"" + host + "\",\"message\":\"" + message + "\",\"error\":\"" + error + "\",\"user\":\"" + user + "\",\"password\":\"" + password + "\"}";
+    }
 }

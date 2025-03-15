@@ -8,6 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ServiceRequest {
-    private Long reportId;
-    private SubmitOption options;
+    Long reportId;
+    String option;
 }

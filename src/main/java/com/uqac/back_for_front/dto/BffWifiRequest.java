@@ -7,4 +7,5 @@ import lombok.Setter;
 @Setter
 public class BffWifiRequest {
     private Long reportId;
+    private String logContent;
 }
