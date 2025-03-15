@@ -120,7 +120,7 @@ public class ReportService {
 
         ServiceRequest serviceRequest = new ServiceRequest();
 
-        String[] UrlsServices = {"http://localhost:8082/urlModuleScan", "http://localhost:8083/api/execute-cpp", "http://localhost:8084/urlModuleBfwifi", "http://localhost:8085/urlModuleCVE"};
+        String[] UrlsServices = {"http://localhost:8082/api/execute-cpp", "http://localhost:8083/api/execute-cpp", "http://localhost:8084/urlModuleBfwifi", "http://localhost:8085/urlModuleCVE"};
 
         for (int i = 0; i < 4; i++) {
             if (request.getOptions().get(i).isValue()) {
@@ -147,12 +147,38 @@ public class ReportService {
      * @param request ScanPortsRequest
      * @return ScanPortsResponse
      */
-    public ScanPortsResponse scanPorts(ScanPortsRequest request) {
-        //stockage des resultats du module scan de ports
-        Result result = (Result) resultRepository.findByReportId(request.getReportId());
-        result.setStep1("le resultat du module scan de ports");
+    public ScanPortsResponse scanPorts(PortScanResultDTO request) {
+
+        logger.info(request.toString());
+
+        // Retrieve the list of results for the given report ID
+        List<Result> results = resultRepository.findByReportId(request.getReportId());
+
+        if (results.isEmpty()) {
+            // Handle the case where no results are found
+            return ScanPortsResponse.builder().message("No results found for the given report ID").build();
+        }
+
+        // Assuming you want to update the first result in the list
+        Result result = results.getFirst();
+        result.setStep1(request.toJSon());
+
+        // Update the result in the repository
         resultRepository.save(result);
-        return null;
+
+
+        // Update the PendingAnalysis step2 to true
+        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(request.getReportId());
+
+        if (optionalPendingAnalysis.isPresent()) {
+            PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
+            pendingAnalysis.setStep1(true);
+            pendingAnalysisRepository.save(pendingAnalysis);
+        } else {
+            return ScanPortsResponse.builder().message("PendingAnalysis not found").build();
+        }
+
+        return ScanPortsResponse.builder().message("Bruteforce SSH request submitted successfully").build();
     }
 
     /**

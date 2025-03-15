@@ -4,6 +4,8 @@ package com.uqac.back_for_front.controllers;
 import com.uqac.back_for_front.dto.*;
 import com.uqac.back_for_front.services.ReportService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/report")
 @RequiredArgsConstructor
 public class ReportController {
+    private static final Logger logger = LoggerFactory.getLogger(ReportController.class);
 
     private final ReportService reportService;
 
@@ -32,8 +35,9 @@ public class ReportController {
      * @param request ScanPortsRequest
      * @return ScanPortsResponse
      */
-    @PostMapping("/scanPorts")
-    public ResponseEntity<ScanPortsResponse> scanPorts(@RequestBody ScanPortsRequest request){
+    @PostMapping(value = "/scanPorts", produces = "application/json")
+    public ResponseEntity<ScanPortsResponse> scanPorts(@RequestBody PortScanResultDTO request){
+        logger.info("Received PortScanResultDTO: {}", request);
         return ResponseEntity.ok(reportService.scanPorts(request));
     }
 
