@@ -88,4 +88,14 @@ public class ReportController {
     public ResponseEntity<String> reportRead(@RequestBody ReportRequest request) {
         return ResponseEntity.ok(reportService.reportRead(request));
     }
+
+    /**
+     * mise à jour de l'état d'un rapport (mis a lu)
+     * @param request ReportRequest
+     * @return 200 ok
+     */
+    @PostMapping("/report-available")
+    public ResponseEntity<String> reportAvailable(@RequestBody ReportRequest request) {
+        return ResponseEntity.ok(reportService.reportAvailable(request));
+    }
 }

@@ -42,39 +42,6 @@ public class ReportService {
         return new ReportsResponse(reports);
     }
 
-    /**
-     * mettre à jour le statut d'un rapport en tant que lu
-     * @param request ReportRequest
-     * @return String
-     */
-    public String reportRead(ReportRequest request) {
-        Long reportId = request.getReport_id();
-
-        Optional<Report> optionalReport = ReportRepository.findByReportId(reportId);
-
-        if (optionalReport.isPresent()) {
-            Report report = optionalReport.get();
-            report.setIsRead(true);
-            ReportRepository.save(report);
-        } else {
-            return "Rapport non trouvé.";
-        }
-
-        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(reportId);
-
-        if (optionalPendingAnalysis.isPresent()) {
-            PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
-            pendingAnalysis.setStep1(true);
-            pendingAnalysis.setStep2(true);
-            pendingAnalysis.setStep3(true);
-            pendingAnalysis.setStep4(true);
-            pendingAnalysisRepository.save(pendingAnalysis);
-        } else {
-            return "PendingAnalysis non trouvé.";
-        }
-
-        return "Rapport marqué comme lu.";
-    }
 
     /**
      * soumettre des options et démarrer une analyse
@@ -261,6 +228,42 @@ public class ReportService {
     }
 
     /**
+     * mettre à jour le statut d'un rapport en tant que lu
+     * @param request ReportRequest
+     * @return String
+     */
+    public String reportRead(ReportRequest request) {
+//        Long reportId = request.getReport_id();
+//
+//        Optional<Report> optionalReport = ReportRepository.findByReportId(reportId);
+//
+//        if (optionalReport.isPresent()) {
+//            Report report = optionalReport.get();
+//            report.setIsRead(true);
+//            ReportRepository.save(report);
+//        } else {
+//            return "Rapport non trouvé.";
+//        }
+//
+//        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(reportId);
+//
+//        if (optionalPendingAnalysis.isPresent()) {
+//            PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
+//            pendingAnalysis.setStep1(true);
+//            pendingAnalysis.setStep2(true);
+//            pendingAnalysis.setStep3(true);
+//            pendingAnalysis.setStep4(true);
+//            pendingAnalysisRepository.save(pendingAnalysis);
+//        } else {
+//            return "PendingAnalysis non trouvé.";
+//        }
+
+        return "Rapport marqué comme lu.";
+    }
+
+
+
+    /**
      * stocker les resultats du module analyse cve
      * @param request AnalysisCVERequest
      * @return AnalysisCVEResponse
@@ -270,6 +273,17 @@ public class ReportService {
         Result result = (Result) resultRepository.findByReportId(request.getReportId());
         result.setStep4("le resultat du module analyseCVE");
         resultRepository.save(result);
+        return null;
+    }
+
+    public String reportAvailable(ReportRequest request) {
+
+        // check les dans pending analyse les lignes qui ont m'ont ID et qui sont a full True pour chaque step
+        // Pour ses ID de reports, Check dans la table report sur encrypted-file est a null
+
+
+
+        // appeler la génération de rapport
         return null;
     }
 }
