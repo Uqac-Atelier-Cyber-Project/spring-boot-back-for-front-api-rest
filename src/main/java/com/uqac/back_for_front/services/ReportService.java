@@ -313,7 +313,7 @@ public class ReportService {
                 PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
                 if (!(pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4())) {
                     pendingReports.add(report.getReportName() + ": PENDING");
-                    /*try {
+                    try {
                         GenerateReportRequest generateReportRequest = GenerateReportRequest.builder().reportId(report.getReportId()).build();
                         restTemplate.postForObject(urlService, generateReportRequest, String.class);
                     } catch (RestClientException e) {
@@ -321,7 +321,7 @@ public class ReportService {
                         System.err.println("Error calling service: " + urlService);
                         System.err.println("Response body: " + e.getMessage());
                         throw e; // Re-throw the exception after logging
-                    }*/
+                    }
                 }
             }
         }
