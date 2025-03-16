@@ -290,7 +290,7 @@ public class ReportService {
      * @param request ReportRequest
      * @return String
      */
-    public String reportAvailable(ReportRequest request) {
+    public List<String>  reportAvailable(ReportRequest request) {
 
         // Find all reports wich file-encrypted is null for a specific userid
 
@@ -299,7 +299,7 @@ public class ReportService {
 
         // If there is no report available
         if (reportsPending.isEmpty()) {
-            return "No report available";
+            return null;
         }
 
         List<String> pendingReports = new ArrayList<>();
@@ -311,9 +311,9 @@ public class ReportService {
             Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(report.getReportId());
             if (optionalPendingAnalysis.isPresent()) {
                 PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
-                if (pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4()) {
+                if (!(pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4())) {
                     pendingReports.add(report.getReportName() + ": PENDING");
-                    try {
+                    /*try {
                         GenerateReportRequest generateReportRequest = GenerateReportRequest.builder().reportId(report.getReportId()).build();
                         restTemplate.postForObject(urlService, generateReportRequest, String.class);
                     } catch (RestClientException e) {
@@ -321,7 +321,7 @@ public class ReportService {
                         System.err.println("Error calling service: " + urlService);
                         System.err.println("Response body: " + e.getMessage());
                         throw e; // Re-throw the exception after logging
-                    }
+                    }*/
                 }
             }
         }
@@ -336,6 +336,6 @@ public class ReportService {
 
         // return les deux listes
 
-        return pendingReports.toString();
+        return pendingReports;
     }
 }
