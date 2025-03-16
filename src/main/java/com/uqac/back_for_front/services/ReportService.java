@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,7 @@ public class ReportService {
     private final RestTemplate restTemplate;
     private static final Logger logger = Logger.getLogger(ReportService.class.getName());
     private static final int MAX_STEP3_LENGTH = 4000; // Define the maximum length for step3
+    private final ReportRepository reportRepository;
 
     /**
      * recuperer tous les rapports pour un utilisateur donné
@@ -253,19 +255,19 @@ public class ReportService {
      * @param request ReportRequest
      * @return String
      */
-    public String reportRead(ReportRequest request) {
-//        Long reportId = request.getReport_id();
-//
-//        Optional<Report> optionalReport = ReportRepository.findByReportId(reportId);
-//
-//        if (optionalReport.isPresent()) {
-//            Report report = optionalReport.get();
-//            report.setIsRead(true);
-//            ReportRepository.save(report);
-//        } else {
-//            return "Rapport non trouvé.";
-//        }
-//
+    public String reportRead(ReportReadRequest request) {
+        Long reportId = request.getReportId();
+        UUID userId = request.getUserId();
+
+        Optional<Report> optionalReport = reportRepository.findByReportIdAndUserId(reportId, userId);
+        if (optionalReport.isPresent()) {
+            Report report = optionalReport.get();
+            report.setIsRead(true);
+            ReportRepository.save(report);
+        } else {
+            return "Rapport non trouvé.";
+        }
+
 //        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(reportId);
 //
 //        if (optionalPendingAnalysis.isPresent()) {
