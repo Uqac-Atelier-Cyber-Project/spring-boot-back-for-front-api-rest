@@ -92,7 +92,7 @@ public class ReportService {
 
         ServiceRequest serviceRequest = new ServiceRequest();
 
-        String[] UrlsServices = {"http://localhost:8082/api/execute-cpp", "http://localhost:8083/api/execute-cpp", "http://localhost:8084/api/attack", "http://localhost:8085/urlModuleCVE"};
+        String[] UrlsServices = {"http://localhost:8082/api/execute-cpp", "http://localhost:8083/api/execute-cpp", "http://localhost:8084/api/attack", "http://localhost:8085/scan/target"};
 
         for (int i = 0; i < 4; i++) {
             if (request.getOptions().get(i).isValue()) {
