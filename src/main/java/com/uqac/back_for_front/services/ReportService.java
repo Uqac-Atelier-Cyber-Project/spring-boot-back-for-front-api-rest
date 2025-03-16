@@ -312,11 +312,6 @@ public class ReportService {
         List<Report> reports = ReportRepository.findByUserId(request.getUserId());
         List<Report> reportsPending = reports.stream().filter(report -> report.getEncryptedFile() == null).toList();
 
-        // If there is no report available
-        if (reportsPending.isEmpty()) {
-            return null;
-        }
-
         List<String> pendingReports = new ArrayList<>();
         // communication avec le service de generation de rapport pour générer le rapport
         String urlService = "http://localhost:8086/reportGenerate/generate";
@@ -329,7 +324,7 @@ public class ReportService {
                 if (!(pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4())) {
                     pendingReports.add(report.getReportName() + ": PENDING");
                 } else if (pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4()) {
-                    try {
+                    /*try {
                         GenerateReportRequest generateReportRequest = GenerateReportRequest.builder().reportId(report.getReportId()).build();
                         restTemplate.postForObject(urlService, generateReportRequest, String.class);
                     } catch (RestClientException e) {
@@ -337,7 +332,7 @@ public class ReportService {
                         System.err.println("Error calling service: " + urlService);
                         System.err.println("Response body: " + e.getMessage());
                         throw e; // Re-throw the exception after logging
-                    }
+                    }*/
                 }
             }
         }
