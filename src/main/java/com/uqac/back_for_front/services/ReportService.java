@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -37,12 +38,24 @@ public class ReportService {
      * @return ReportsResponse
      */
     public ReportsResponse userReports(ReportsRequest request) {
+        // verification
+        if (!ReportRepository.existsByUserId(request.getUserId())) {
+            return new ReportsResponse(new ArrayList<>()); // si l'utilisateur n'as pas de rapport, retourner une liste vide
+        }
         // Récupération des rapports de l'utilisateur donné
-        // TODO : verifier les attributs necessaires
         List<Report> reports = ReportRepository.findByUserId(request.getUserId());
 
-        // Création de la réponse
-        return new ReportsResponse(reports);
+        // Création de la réponse avec transformation en DTO
+        List<ReportDTO> reportDTOs = reports.stream()
+                .map(report -> new ReportDTO(
+                        report.getReportId(),
+                        report.getReportName(),
+                        report.getEncryptedFile(),
+                        report.getIsRead()
+                ))
+                .collect(Collectors.toList());
+
+        return new ReportsResponse(reportDTOs);
     }
 
 

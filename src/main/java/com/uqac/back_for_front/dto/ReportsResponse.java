@@ -10,9 +10,9 @@ import java.util.List;
 public class ReportsResponse {
 
 
-    private List<Report> reports;
+    private List<ReportDTO> reports;
 
-    public ReportsResponse(List<Report> reports) {
+    public ReportsResponse(List<ReportDTO> reports) {
         this.reports = reports;
     }
 
