@@ -1,12 +1,12 @@
 package com.uqac.back_for_front.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import java.util.UUID;
 
-
+@Builder
 @Getter
 @Setter
-public class ReportRequest {
-    private UUID userId;
+public class GenerateReportRequest {
+    private Long reportId;
 }

@@ -26,8 +26,9 @@ public class Report {
     @Column(name = "report_name", length = 255)
     private String reportName;
 
+    @Lob
     @Column(name = "encrypted_file", length = 255)
-    private String encryptedFile;
+    private byte[] encryptedFile;
 
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;

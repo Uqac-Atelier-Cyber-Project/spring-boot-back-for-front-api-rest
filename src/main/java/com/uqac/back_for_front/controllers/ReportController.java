@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
 @RequestMapping("/report")
@@ -87,5 +89,15 @@ public class ReportController {
     @PostMapping("/report-read")
     public ResponseEntity<String> reportRead(@RequestBody ReportRequest request) {
         return ResponseEntity.ok(reportService.reportRead(request));
+    }
+
+    /**
+     * mise à jour de l'état d'un rapport (mis a lu)
+     * @param request ReportRequest
+     * @return 200 ok
+     */
+    @PostMapping("/report-available")
+    public ResponseEntity<List<String>> reportAvailable(@RequestBody ReportRequest request) {
+        return ResponseEntity.ok(reportService.reportAvailable(request));
     }
 }

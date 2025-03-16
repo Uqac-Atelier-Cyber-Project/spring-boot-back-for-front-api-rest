@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -28,8 +29,10 @@ public class ReportService {
     private final RestTemplate restTemplate;
     private static final Logger logger = Logger.getLogger(ReportService.class.getName());
     private static final int MAX_STEP3_LENGTH = 4000; // Define the maximum length for step3
+
     /**
      * recuperer tous les rapports pour un utilisateur donné
+     *
      * @param request ReportsRequest
      * @return ReportsResponse
      */
@@ -42,42 +45,10 @@ public class ReportService {
         return new ReportsResponse(reports);
     }
 
-    /**
-     * mettre à jour le statut d'un rapport en tant que lu
-     * @param request ReportRequest
-     * @return String
-     */
-    public String reportRead(ReportRequest request) {
-        Long reportId = request.getReport_id();
-
-        Optional<Report> optionalReport = ReportRepository.findByReportId(reportId);
-
-        if (optionalReport.isPresent()) {
-            Report report = optionalReport.get();
-            report.setIsRead(true);
-            ReportRepository.save(report);
-        } else {
-            return "Rapport non trouvé.";
-        }
-
-        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(reportId);
-
-        if (optionalPendingAnalysis.isPresent()) {
-            PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
-            pendingAnalysis.setStep1(true);
-            pendingAnalysis.setStep2(true);
-            pendingAnalysis.setStep3(true);
-            pendingAnalysis.setStep4(true);
-            pendingAnalysisRepository.save(pendingAnalysis);
-        } else {
-            return "PendingAnalysis non trouvé.";
-        }
-
-        return "Rapport marqué comme lu.";
-    }
 
     /**
      * soumettre des options et démarrer une analyse
+     *
      * @param request SubmitRequest
      * @return SubmitOptionResponse
      */
@@ -86,7 +57,7 @@ public class ReportService {
         // Creation du rapport set a null
         Report report = Report.builder()
                 .userId(request.getUserId())
-                .reportName("Nom_du_rapport"+ java.time.Instant.now()) //set the document name with timestamp
+                .reportName("Nom_du_rapport" + java.time.Instant.now()) //set the document name with timestamp
                 .isRead(false)
                 .triggerDate(java.time.Instant.now())
                 .build();
@@ -145,6 +116,7 @@ public class ReportService {
 
     /**
      * stocker les resultats du module scan de ports
+     *
      * @param request ScanPortsRequest
      * @return ScanPortsResponse
      */
@@ -184,10 +156,11 @@ public class ReportService {
 
     /**
      * stocker les resultats du module bruteforcessh
+     *
      * @param request BfsshRequest
      * @return BfsshResponse
      */
-    public BfsshResponse bfssh(BfsshRequest request){
+    public BfsshResponse bfssh(BfsshRequest request) {
         // Retrieve the list of results for the given report ID
         List<Result> results = resultRepository.findByReportId(request.getReportId());
 
@@ -219,6 +192,7 @@ public class ReportService {
 
     /**
      * stocker les resultats du module bruteforceWifi
+     *
      * @param request BffWifiRequest
      * @return BffWifiResponse
      */
@@ -261,7 +235,44 @@ public class ReportService {
     }
 
     /**
+     * mettre à jour le statut d'un rapport en tant que lu
+     *
+     * @param request ReportRequest
+     * @return String
+     */
+    public String reportRead(ReportRequest request) {
+//        Long reportId = request.getReport_id();
+//
+//        Optional<Report> optionalReport = ReportRepository.findByReportId(reportId);
+//
+//        if (optionalReport.isPresent()) {
+//            Report report = optionalReport.get();
+//            report.setIsRead(true);
+//            ReportRepository.save(report);
+//        } else {
+//            return "Rapport non trouvé.";
+//        }
+//
+//        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(reportId);
+//
+//        if (optionalPendingAnalysis.isPresent()) {
+//            PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
+//            pendingAnalysis.setStep1(true);
+//            pendingAnalysis.setStep2(true);
+//            pendingAnalysis.setStep3(true);
+//            pendingAnalysis.setStep4(true);
+//            pendingAnalysisRepository.save(pendingAnalysis);
+//        } else {
+//            return "PendingAnalysis non trouvé.";
+//        }
+
+        return "Rapport marqué comme lu.";
+    }
+
+
+    /**
      * stocker les resultats du module analyse cve
+     *
      * @param request AnalysisCVERequest
      * @return AnalysisCVEResponse
      */
@@ -271,5 +282,61 @@ public class ReportService {
         result.setStep4("le resultat du module analyseCVE");
         resultRepository.save(result);
         return null;
+    }
+
+    /**
+     * retourner les rapports disponibles pour un utilisateur
+     *
+     * @param request ReportRequest
+     * @return String
+     */
+    public List<String>  reportAvailable(ReportRequest request) {
+
+        // Find all reports wich file-encrypted is null for a specific userid
+
+        List<Report> reports = ReportRepository.findByUserId(request.getUserId());
+        List<Report> reportsPending = reports.stream().filter(report -> report.getEncryptedFile() == null).toList();
+
+        // If there is no report available
+        if (reportsPending.isEmpty()) {
+            return null;
+        }
+
+        List<String> pendingReports = new ArrayList<>();
+        // communication avec le service de generation de rapport pour générer le rapport
+        String urlService = "http://localhost:8086/reportGenerate/generate";
+        // If there is a report available
+        // check pendingAnalysis for each reportid
+        for (Report report : reportsPending) {
+            Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(report.getReportId());
+            if (optionalPendingAnalysis.isPresent()) {
+                PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
+                if (!(pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4())) {
+                    pendingReports.add(report.getReportName() + ": PENDING");
+                } else if (pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4()) {
+                    try {
+                        GenerateReportRequest generateReportRequest = GenerateReportRequest.builder().reportId(report.getReportId()).build();
+                        restTemplate.postForObject(urlService, generateReportRequest, String.class);
+                    } catch (RestClientException e) {
+                        // Log the error and the response body
+                        System.err.println("Error calling service: " + urlService);
+                        System.err.println("Response body: " + e.getMessage());
+                        throw e; // Re-throw the exception after logging
+                    }
+                }
+            }
+        }
+
+
+        // recupérer la liste pour un USER dans la table report where encryptedFile is not null and isRead is false
+        List<Report> reportsAvailable = reports.stream().filter(report -> report.getEncryptedFile() != null && !report.getIsRead()).toList();
+        // on rajoute AVAILABLE pour chaque report
+        for (Report report : reportsAvailable) {
+            pendingReports.add(report.getReportName() + ": AVAILABLE");
+        }
+
+        // return les deux listes
+
+        return pendingReports;
     }
 }
