@@ -1,6 +1,7 @@
 package com.uqac.back_for_front.services;
 
 import com.uqac.back_for_front.dto.*;
+import com.uqac.back_for_front.dto.analyseObject.Host;
 import com.uqac.back_for_front.entity.PendingAnalysis;
 import com.uqac.back_for_front.entity.Report;
 import com.uqac.back_for_front.entity.Result;
@@ -107,7 +108,7 @@ public class ReportService {
 
         ServiceRequest serviceRequest = new ServiceRequest();
 
-        String[] UrlsServices = {"http://localhost:8082/api/execute-cpp", "http://localhost:8083/api/execute-cpp", "http://localhost:8084/api/attack", "http://localhost:8085/urlModuleCVE"};
+        String[] UrlsServices = {"http://localhost:8082/api/execute-cpp", "http://localhost:8083/api/execute-cpp", "http://localhost:8084/api/attack", "http://localhost:8085/scan/target"};
 
         for (int i = 0; i < 4; i++) {
             if (request.getOptions().get(i).isValue()) {
@@ -292,11 +293,36 @@ public class ReportService {
      * @return AnalysisCVEResponse
      */
     public AnalysisCVEResponse analysisCVE(AnalysisCVERequest request) {
-        // stokage des resultats du module analyse cve
-        Result result = (Result) resultRepository.findByReportId(request.getReportId());
-        result.setStep4("le resultat du module analyseCVE");
+
+        // Retrieve the list of results for the given report ID
+        List<Result> results = resultRepository.findByReportId(Long.valueOf(request.getReportId()));
+
+        if (results.isEmpty()) {
+            // Handle the case where no results are found
+            return AnalysisCVEResponse.builder().message("No results found for the given report ID").build();
+        }
+
+        // Assuming you want to update the first result in the list
+        Result result = results.getFirst();
+        List<Host> cveList = request.getCvehosts();
+
+        result.setStep4(cveList.toString());
+
+        // Update the result in the repository
         resultRepository.save(result);
-        return null;
+
+        // Update the PendingAnalysis step3 to true
+        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(Long.valueOf(request.getReportId()));
+
+        if (optionalPendingAnalysis.isPresent()) {
+            PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
+            pendingAnalysis.setStep3(true);
+            pendingAnalysisRepository.save(pendingAnalysis);
+        } else {
+            return AnalysisCVEResponse.builder().message("PendingAnalysis not found").build();
+        }
+
+        return AnalysisCVEResponse.builder().message("CVE analysis request submitted successfully").build();
     }
 
     /**
