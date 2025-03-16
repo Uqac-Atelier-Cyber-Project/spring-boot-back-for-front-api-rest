@@ -45,7 +45,7 @@ public class ReportService {
             return new ReportsResponse(new ArrayList<>()); // si l'utilisateur n'as pas de rapport, retourner une liste vide
         }
         // Récupération des rapports de l'utilisateur donné
-        List<Report> reports = ReportRepository.findByUserId(request.getUserId());
+        List<Report> reports = ReportRepository.findByUserIdAndEncryptedFileIsNotNull(request.getUserId());
 
         // Création de la réponse avec transformation en DTO
         List<ReportDTO> reportDTOs = reports.stream()

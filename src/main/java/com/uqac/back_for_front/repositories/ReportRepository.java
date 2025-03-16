@@ -15,6 +15,8 @@ public interface ReportRepository extends JpaRepository<Report, UUID> {
     // Trouver tous les rapports d'un utilisateur donné par son ID
     List<Report> findByUserId(UUID userId);
 
+    List<Report> findByUserIdAndEncryptedFileIsNotNull(UUID userId);
+
     Optional<Report> findByReportIdAndUserId(Long reportId, UUID userId);
 
 
