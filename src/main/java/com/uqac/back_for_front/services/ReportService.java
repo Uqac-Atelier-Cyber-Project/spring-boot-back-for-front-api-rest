@@ -313,6 +313,7 @@ public class ReportService {
                 PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
                 if (!(pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4())) {
                     pendingReports.add(report.getReportName() + ": PENDING");
+                } else if (pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4()) {
                     try {
                         GenerateReportRequest generateReportRequest = GenerateReportRequest.builder().reportId(report.getReportId()).build();
                         restTemplate.postForObject(urlService, generateReportRequest, String.class);
