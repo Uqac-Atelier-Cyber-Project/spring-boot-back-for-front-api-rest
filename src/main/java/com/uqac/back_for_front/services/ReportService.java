@@ -16,7 +16,9 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -29,6 +31,7 @@ public class ReportService {
     private final RestTemplate restTemplate;
     private static final Logger logger = Logger.getLogger(ReportService.class.getName());
     private static final int MAX_STEP3_LENGTH = 4000; // Define the maximum length for step3
+    private final ReportRepository reportRepository;
 
     /**
      * recuperer tous les rapports pour un utilisateur donné
@@ -37,12 +40,24 @@ public class ReportService {
      * @return ReportsResponse
      */
     public ReportsResponse userReports(ReportsRequest request) {
+        // verification
+        if (!ReportRepository.existsByUserId(request.getUserId())) {
+            return new ReportsResponse(new ArrayList<>()); // si l'utilisateur n'as pas de rapport, retourner une liste vide
+        }
         // Récupération des rapports de l'utilisateur donné
-        // TODO : verifier les attributs necessaires
         List<Report> reports = ReportRepository.findByUserId(request.getUserId());
 
-        // Création de la réponse
-        return new ReportsResponse(reports);
+        // Création de la réponse avec transformation en DTO
+        List<ReportDTO> reportDTOs = reports.stream()
+                .map(report -> new ReportDTO(
+                        report.getReportId(),
+                        report.getReportName(),
+                        report.getEncryptedFile(),
+                        report.getIsRead()
+                ))
+                .collect(Collectors.toList());
+
+        return new ReportsResponse(reportDTOs);
     }
 
 
@@ -240,19 +255,19 @@ public class ReportService {
      * @param request ReportRequest
      * @return String
      */
-    public String reportRead(ReportRequest request) {
-//        Long reportId = request.getReport_id();
-//
-//        Optional<Report> optionalReport = ReportRepository.findByReportId(reportId);
-//
-//        if (optionalReport.isPresent()) {
-//            Report report = optionalReport.get();
-//            report.setIsRead(true);
-//            ReportRepository.save(report);
-//        } else {
-//            return "Rapport non trouvé.";
-//        }
-//
+    public String reportRead(ReportReadRequest request) {
+        Long reportId = request.getReportId();
+        UUID userId = request.getUserId();
+
+        Optional<Report> optionalReport = reportRepository.findByReportIdAndUserId(reportId, userId);
+        if (optionalReport.isPresent()) {
+            Report report = optionalReport.get();
+            report.setIsRead(true);
+            ReportRepository.save(report);
+        } else {
+            return "Rapport non trouvé.";
+        }
+
 //        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(reportId);
 //
 //        if (optionalPendingAnalysis.isPresent()) {
@@ -297,11 +312,6 @@ public class ReportService {
         List<Report> reports = ReportRepository.findByUserId(request.getUserId());
         List<Report> reportsPending = reports.stream().filter(report -> report.getEncryptedFile() == null).toList();
 
-        // If there is no report available
-        if (reportsPending.isEmpty()) {
-            return null;
-        }
-
         List<String> pendingReports = new ArrayList<>();
         // communication avec le service de generation de rapport pour générer le rapport
         String urlService = "http://localhost:8086/reportGenerate/generate";
@@ -314,7 +324,7 @@ public class ReportService {
                 if (!(pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4())) {
                     pendingReports.add(report.getReportName() + ": PENDING");
                 } else if (pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4()) {
-                    try {
+                    /*try {
                         GenerateReportRequest generateReportRequest = GenerateReportRequest.builder().reportId(report.getReportId()).build();
                         restTemplate.postForObject(urlService, generateReportRequest, String.class);
                     } catch (RestClientException e) {
@@ -322,7 +332,7 @@ public class ReportService {
                         System.err.println("Error calling service: " + urlService);
                         System.err.println("Response body: " + e.getMessage());
                         throw e; // Re-throw the exception after logging
-                    }
+                    }*/
                 }
             }
         }

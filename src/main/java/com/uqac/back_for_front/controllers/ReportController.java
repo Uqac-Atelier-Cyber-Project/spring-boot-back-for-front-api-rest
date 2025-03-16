@@ -87,7 +87,7 @@ public class ReportController {
      * @return 200 ok
      */
     @PostMapping("/report-read")
-    public ResponseEntity<String> reportRead(@RequestBody ReportRequest request) {
+    public ResponseEntity<String> reportRead(@RequestBody ReportReadRequest request) {
         return ResponseEntity.ok(reportService.reportRead(request));
     }
 
