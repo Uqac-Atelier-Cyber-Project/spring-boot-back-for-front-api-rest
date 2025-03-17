@@ -42,16 +42,16 @@ public class PortScanResultDTO {
     }
 
     public String toJSon() {
-        return "{" +
+        return "{\n" +
                 "\"reportId\":" + reportId +
-                ", \"host\":\"" + host + '\"' +
-                ", \"message\":\"" + message + '\"' +
-                ", \"error\":\"" + error + '\"' +
-                ", \"scanRange\":" + scanRange.toJSon() +
-                ", \"openPorts\":[" + openPorts.stream()
+                ",\n \"host\":\"" + host + '\"' +
+                ",\n \"message\":\"" + message + '\"' +
+                ",\n \"error\":\"" + error + '\"' +
+                ",\n \"scanRange\":" + scanRange.toJSon() +
+                ",\n \"openPorts\":[" + openPorts.stream()
                 .map(PortInfoDTO::toJSon)
-                .collect(Collectors.joining(", ")) +
-                "]" +
+                .collect(Collectors.joining(",\n     ")) +
+                "\n]" +
                 '}';
     }
 }
