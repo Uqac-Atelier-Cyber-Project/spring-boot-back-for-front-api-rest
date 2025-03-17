@@ -11,5 +11,8 @@ public class CveEntry {
 
     private String id;
     private String description;
-
+    @Override
+    public String toString() {
+        return "CveEntry [id=" + id ;
+    }
 }

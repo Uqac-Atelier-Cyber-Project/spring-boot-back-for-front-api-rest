@@ -9,5 +9,8 @@ public class Service {
 
     @JacksonXmlProperty(isAttribute = true, localName = "version")
     public String version;
-
+    @Override
+    public String toString() {
+        return "Service [name=" + name + ", version=" + version + "]";
+    }
 }
