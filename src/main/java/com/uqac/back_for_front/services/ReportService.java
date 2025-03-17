@@ -10,14 +10,15 @@ import com.uqac.back_for_front.repositories.ReportRepository;
 import com.uqac.back_for_front.repositories.ResultRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import org.springframework.http.HttpHeaders;
+
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -73,7 +74,8 @@ public class ReportService {
         // Creation du rapport set a null
         Report report = Report.builder()
                 .userId(request.getUserId())
-                .reportName("Nom_du_rapport" + java.time.Instant.now()) //set the document name with timestamp
+                //fait  en sorte que le nom soit reportName + random int
+                .reportName("Nom_du_rapport" + new Random().nextInt()) //set the document name with timestamp
                 .isRead(false)
                 .triggerDate(java.time.Instant.now())
                 .build();
@@ -114,8 +116,13 @@ public class ReportService {
             if (request.getOptions().get(i).isValue()) {
                 serviceRequest.setReportId(report.getReportId());
                 serviceRequest.setOption(request.getOptions().get(i).getOption1());
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                HttpEntity<ServiceRequest> entity = new HttpEntity<>(serviceRequest, headers);
+
                 try {
-                    restTemplate.postForObject(UrlsServices[i], serviceRequest, String.class);
+                    restTemplate.postForObject(UrlsServices[i], entity, String.class);
                 } catch (RestClientException e) {
                     // Log the error and the response body
                     System.err.println("Error calling service: " + UrlsServices[i]);
@@ -226,10 +233,10 @@ public class ReportService {
         Result result = results.getFirst();
         String logContent = request.getLogContent();
 
-        // Truncate the log content if it exceeds the maximum length
-        if (logContent.length() > MAX_STEP3_LENGTH) {
-            logContent = logContent.substring(logContent.length() - MAX_STEP3_LENGTH);
-        }
+//        // Truncate the log content if it exceeds the maximum length
+//        if (logContent.length() > MAX_STEP3_LENGTH) {
+//            logContent = logContent.substring(logContent.length() - MAX_STEP3_LENGTH);
+//        }
 
         result.setStep3(logContent);
 
@@ -350,15 +357,20 @@ public class ReportService {
                 if (!(pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4())) {
                     pendingReports.add(report.getReportName() + ": PENDING");
                 } else if (pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4()) {
-                    /*try {
+                    try {
                         GenerateReportRequest generateReportRequest = GenerateReportRequest.builder().reportId(report.getReportId()).build();
-                        restTemplate.postForObject(urlService, generateReportRequest, String.class);
+
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setContentType(MediaType.APPLICATION_JSON);
+                        HttpEntity<GenerateReportRequest> entity = new HttpEntity<>(generateReportRequest, headers);
+
+                        restTemplate.postForObject(urlService, entity, String.class);
                     } catch (RestClientException e) {
                         // Log the error and the response body
                         System.err.println("Error calling service: " + urlService);
                         System.err.println("Response body: " + e.getMessage());
                         throw e; // Re-throw the exception after logging
-                    }*/
+                    }
                 }
             }
         }
