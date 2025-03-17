@@ -323,7 +323,7 @@ public class ReportService {
 
         if (optionalPendingAnalysis.isPresent()) {
             PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
-            pendingAnalysis.setStep3(true);
+            pendingAnalysis.setStep4(true);
             pendingAnalysisRepository.save(pendingAnalysis);
         } else {
             return AnalysisCVEResponse.builder().message("PendingAnalysis not found").build();
