@@ -10,6 +10,7 @@ import com.uqac.back_for_front.repositories.ReportRepository;
 import com.uqac.back_for_front.repositories.ResultRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -27,12 +28,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReportService {
 
+    @Autowired
+    private ApiProperties apiProperties;
+
     private final ReportRepository ReportRepository;
     private final PendingAnalysisRepository pendingAnalysisRepository;
     private final ResultRepository resultRepository;
     private final RestTemplate restTemplate;
     private static final Logger logger = Logger.getLogger(ReportService.class.getName());
-    private static final int MAX_STEP3_LENGTH = 4000; // Define the maximum length for step3
     private final ReportRepository reportRepository;
 
     /**
@@ -110,7 +113,7 @@ public class ReportService {
 
         ServiceRequest serviceRequest = new ServiceRequest();
 
-        String[] UrlsServices = {"http://localhost:8082/api/execute-cpp", "http://localhost:8083/api/execute-cpp", "http://localhost:8084/api/attack", "http://localhost:8085/scan/target"};
+        String[] UrlsServices = {apiProperties.getUrl_scan() + "/api/execute-cpp", apiProperties.getUrl_ssh() + "/api/execute-cpp", apiProperties.getUrl_wifi() + "/api/attack", apiProperties.getUrl_cve() + "/scan/target"};
 
         for (int i = 0; i < 4; i++) {
             if (request.getOptions().get(i).isValue()) {
@@ -220,6 +223,7 @@ public class ReportService {
      * @return BffWifiResponse
      */
     public BffWifiResponse bffwifi(BffWifiRequest request) {
+        logger.info("APPEL BFFWIFI");
 
         // Retrieve the list of results for the given report ID
         List<Result> results = resultRepository.findByReportId(request.getReportId());
@@ -231,14 +235,12 @@ public class ReportService {
 
         // Assuming you want to update the first result in the list
         Result result = results.getFirst();
-        String logContent = request.getLogContent();
 
-//        // Truncate the log content if it exceeds the maximum length
-//        if (logContent.length() > MAX_STEP3_LENGTH) {
-//            logContent = logContent.substring(logContent.length() - MAX_STEP3_LENGTH);
-//        }
+        String resultWifi = request.toString();
 
-        result.setStep3(logContent);
+        logger.info("Result Wifi: " + resultWifi);
+
+        result.setStep3(resultWifi);
 
         // Update the result in the repository
         resultRepository.save(result);
@@ -338,7 +340,7 @@ public class ReportService {
      * @param request ReportRequest
      * @return String
      */
-    public List<String>  reportAvailable(ReportRequest request) {
+    public List<String> reportAvailable(ReportRequest request) {
 
         // Find all reports wich file-encrypted is null for a specific userid
 
@@ -347,7 +349,7 @@ public class ReportService {
 
         List<String> pendingReports = new ArrayList<>();
         // communication avec le service de generation de rapport pour générer le rapport
-        String urlService = "http://localhost:8086/reportGenerate/generate";
+        String urlService = apiProperties.getUrl_report() + "/reportGenerate/generate";
         // If there is a report available
         // check pendingAnalysis for each reportid
         for (Report report : reportsPending) {
@@ -356,7 +358,7 @@ public class ReportService {
                 PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
                 if (!(pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4())) {
                     pendingReports.add(report.getReportName() + ": PENDING");
-                } else if (pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4()) {
+                } else {
                     try {
                         GenerateReportRequest generateReportRequest = GenerateReportRequest.builder().reportId(report.getReportId()).build();
 
