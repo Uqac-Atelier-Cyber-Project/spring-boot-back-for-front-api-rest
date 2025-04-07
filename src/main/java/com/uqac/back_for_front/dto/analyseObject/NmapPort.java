@@ -1,11 +1,13 @@
 package com.uqac.back_for_front.dto.analyseObject;
 
 
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Représente un port scanné sur un hôte.
@@ -14,7 +16,7 @@ import java.util.List;
 public class NmapPort {
 
     @JacksonXmlProperty(isAttribute = true, localName = "portid")
-    public int portid;
+    public int portId;
     private List<CveEntry> cves;
     @JacksonXmlProperty(localName = "state")
     public State state;
@@ -24,21 +26,35 @@ public class NmapPort {
     public void setCves(List<CveEntry> cves) {
         this.cves = cves;
     }
-
+    public List<CveEntry> getCves() {
+        return cves;
+    }
     public NmapPort() {
         cves=new ArrayList<CveEntry>();
-        portid=0;
+        portId=0;
     }
 
     @Override
     public String toString() {
-        if (service != null && state!=null && cves !=null) {
-            return (this.portid+" "+this.state.getState()+" "+this.service+" "+this.cves.toString());
-            // Utiliser serviceString...
-        } else {
-            // Gérer le cas où port.service est null, par exemple avec une valeur par défaut
-            return "CVE non reconnue";
-        }
-
+        return "NmapPort{" +
+                "portId=" + portId +
+                ", state='" + state + '\'' +
+                ", service=" + service +
+                ", cves=" + cves.stream()
+                .map(CveEntry::toString)
+                .collect(Collectors.joining(", ")) +
+                '}';
+    }
+    public String toJson() {
+        StringBuilder json = new StringBuilder();
+        json.append("{");
+        json.append("\"name\":\"").append(service.name).append("\",");
+        json.append("\"version\":\"").append(service.version).append("\",");
+        json.append("\"cves\":[").append(cves.stream()
+                .map(CveEntry::toJson)
+                .collect(Collectors.joining(","))).append("]");
+        json.append("}");
+        return json.toString();
     }
 }
+
