@@ -10,26 +10,33 @@ import com.uqac.back_for_front.repositories.ReportRepository;
 import com.uqac.back_for_front.repositories.ResultRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import org.springframework.http.HttpHeaders;
+
+import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
 @Service
 @RequiredArgsConstructor
 public class ReportService {
 
+    @Autowired
+    private ApiProperties apiProperties;
+
     private final ReportRepository ReportRepository;
     private final PendingAnalysisRepository pendingAnalysisRepository;
     private final ResultRepository resultRepository;
     private final RestTemplate restTemplate;
     private static final Logger logger = Logger.getLogger(ReportService.class.getName());
-    private static final int MAX_STEP3_LENGTH = 4000; // Define the maximum length for step3
+    private final ReportRepository reportRepository;
 
     /**
      * recuperer tous les rapports pour un utilisateur donné
@@ -38,12 +45,24 @@ public class ReportService {
      * @return ReportsResponse
      */
     public ReportsResponse userReports(ReportsRequest request) {
+        // verification
+        if (!ReportRepository.existsByUserId(request.getUserId())) {
+            return new ReportsResponse(new ArrayList<>()); // si l'utilisateur n'as pas de rapport, retourner une liste vide
+        }
         // Récupération des rapports de l'utilisateur donné
-        // TODO : verifier les attributs necessaires
-        List<Report> reports = ReportRepository.findByUserId(request.getUserId());
+        List<Report> reports = ReportRepository.findByUserIdAndEncryptedFileIsNotNull(request.getUserId());
 
-        // Création de la réponse
-        return new ReportsResponse(reports);
+        // Création de la réponse avec transformation en DTO
+        List<ReportDTO> reportDTOs = reports.stream()
+                .map(report -> new ReportDTO(
+                        report.getReportId(),
+                        report.getReportName(),
+                        report.getEncryptedFile(),
+                        report.getIsRead()
+                ))
+                .collect(Collectors.toList());
+
+        return new ReportsResponse(reportDTOs);
     }
 
 
@@ -58,7 +77,8 @@ public class ReportService {
         // Creation du rapport set a null
         Report report = Report.builder()
                 .userId(request.getUserId())
-                .reportName("Nom_du_rapport" + java.time.Instant.now()) //set the document name with timestamp
+                //fait  en sorte que le nom soit reportName + random int
+                .reportName("Nom_du_rapport" + new Random().nextInt()) //set the document name with timestamp
                 .isRead(false)
                 .triggerDate(java.time.Instant.now())
                 .build();
@@ -93,14 +113,19 @@ public class ReportService {
 
         ServiceRequest serviceRequest = new ServiceRequest();
 
-        String[] UrlsServices = {"http://localhost:8082/api/execute-cpp", "http://localhost:8083/api/execute-cpp", "http://localhost:8084/api/attack", "http://localhost:8085/scan/target"};
+        String[] UrlsServices = {apiProperties.getUrl_scan() + "/api/execute-cpp", apiProperties.getUrl_ssh() + "/api/execute-cpp", apiProperties.getUrl_wifi() + "/api/attack", apiProperties.getUrl_cve() + "/scan/target"};
 
         for (int i = 0; i < 4; i++) {
             if (request.getOptions().get(i).isValue()) {
                 serviceRequest.setReportId(report.getReportId());
                 serviceRequest.setOption(request.getOptions().get(i).getOption1());
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                HttpEntity<ServiceRequest> entity = new HttpEntity<>(serviceRequest, headers);
+
                 try {
-                    restTemplate.postForObject(UrlsServices[i], serviceRequest, String.class);
+                    restTemplate.postForObject(UrlsServices[i], entity, String.class);
                 } catch (RestClientException e) {
                     // Log the error and the response body
                     System.err.println("Error calling service: " + UrlsServices[i]);
@@ -198,6 +223,7 @@ public class ReportService {
      * @return BffWifiResponse
      */
     public BffWifiResponse bffwifi(BffWifiRequest request) {
+        logger.info("APPEL BFFWIFI");
 
         // Retrieve the list of results for the given report ID
         List<Result> results = resultRepository.findByReportId(request.getReportId());
@@ -209,14 +235,12 @@ public class ReportService {
 
         // Assuming you want to update the first result in the list
         Result result = results.getFirst();
-        String logContent = request.getLogContent();
 
-        // Truncate the log content if it exceeds the maximum length
-        if (logContent.length() > MAX_STEP3_LENGTH) {
-            logContent = logContent.substring(logContent.length() - MAX_STEP3_LENGTH);
-        }
+        String resultWifi = request.toString();
 
-        result.setStep3(logContent);
+        logger.info("Result Wifi: " + resultWifi);
+
+        result.setStep3(resultWifi);
 
         // Update the result in the repository
         resultRepository.save(result);
@@ -241,19 +265,19 @@ public class ReportService {
      * @param request ReportRequest
      * @return String
      */
-    public String reportRead(ReportRequest request) {
-//        Long reportId = request.getReport_id();
-//
-//        Optional<Report> optionalReport = ReportRepository.findByReportId(reportId);
-//
-//        if (optionalReport.isPresent()) {
-//            Report report = optionalReport.get();
-//            report.setIsRead(true);
-//            ReportRepository.save(report);
-//        } else {
-//            return "Rapport non trouvé.";
-//        }
-//
+    public String reportRead(ReportReadRequest request) {
+        Long reportId = request.getReportId();
+        UUID userId = request.getUserId();
+
+        Optional<Report> optionalReport = reportRepository.findByReportIdAndUserId(reportId, userId);
+        if (optionalReport.isPresent()) {
+            Report report = optionalReport.get();
+            report.setIsRead(true);
+            ReportRepository.save(report);
+        } else {
+            return "Rapport non trouvé.";
+        }
+
 //        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(reportId);
 //
 //        if (optionalPendingAnalysis.isPresent()) {
@@ -301,7 +325,7 @@ public class ReportService {
 
         if (optionalPendingAnalysis.isPresent()) {
             PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
-            pendingAnalysis.setStep3(true);
+            pendingAnalysis.setStep4(true);
             pendingAnalysisRepository.save(pendingAnalysis);
         } else {
             return AnalysisCVEResponse.builder().message("PendingAnalysis not found").build();
@@ -316,21 +340,16 @@ public class ReportService {
      * @param request ReportRequest
      * @return String
      */
-    public List<String>  reportAvailable(ReportRequest request) {
+    public List<String> reportAvailable(ReportRequest request) {
 
         // Find all reports wich file-encrypted is null for a specific userid
 
         List<Report> reports = ReportRepository.findByUserId(request.getUserId());
         List<Report> reportsPending = reports.stream().filter(report -> report.getEncryptedFile() == null).toList();
 
-        // If there is no report available
-        if (reportsPending.isEmpty()) {
-            return null;
-        }
-
         List<String> pendingReports = new ArrayList<>();
         // communication avec le service de generation de rapport pour générer le rapport
-        String urlService = "http://localhost:8086/reportGenerate/generate";
+        String urlService = apiProperties.getUrl_report() + "/reportGenerate/generate";
         // If there is a report available
         // check pendingAnalysis for each reportid
         for (Report report : reportsPending) {
@@ -339,10 +358,15 @@ public class ReportService {
                 PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
                 if (!(pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4())) {
                     pendingReports.add(report.getReportName() + ": PENDING");
-                } else if (pendingAnalysis.getStep1() && pendingAnalysis.getStep2() && pendingAnalysis.getStep3() && pendingAnalysis.getStep4()) {
+                } else {
                     try {
                         GenerateReportRequest generateReportRequest = GenerateReportRequest.builder().reportId(report.getReportId()).build();
-                        restTemplate.postForObject(urlService, generateReportRequest, String.class);
+
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setContentType(MediaType.APPLICATION_JSON);
+                        HttpEntity<GenerateReportRequest> entity = new HttpEntity<>(generateReportRequest, headers);
+
+                        restTemplate.postForObject(urlService, entity, String.class);
                     } catch (RestClientException e) {
                         // Log the error and the response body
                         System.err.println("Error calling service: " + urlService);

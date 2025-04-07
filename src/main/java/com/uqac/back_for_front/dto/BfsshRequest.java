@@ -16,6 +16,6 @@ public class BfsshRequest {
     private String password;
 
     public String resultJson() {
-        return "{\"host\":\"" + host + "\",\"message\":\"" + message + "\",\"error\":\"" + error + "\",\"user\":\"" + user + "\",\"password\":\"" + password + "\"}";
+        return "{\n\"host\":\"" + host + "\",\n\"message\":\"" + message + "\",\n\"error\":\"" + error + "\",\n\"user\":\"" + user + "\",\n\"password\":\"" + password + "\"\n}";
     }
 }

@@ -1,0 +1,375 @@
+# Description: Documentation de l'API pour OPIB.
+# copier coller sur https://editor.swagger.io/ pour visualiser la documentation
+
+openapi: 3.0.0
+info:
+  title: API Documentation
+  description: Documentation de l'API pour OPIB.
+  version: 2.0.0
+servers:
+  - url: http://localhost:8000/api
+    description: Serveur local
+
+paths:
+  /auth/register:
+    post:
+        summary: Créer un nouvel utilisateur
+        requestBody:
+            required: true
+            content:
+            application/json:
+                schema:
+                type: object
+                properties:
+                    email:
+                      type: string
+                    password:
+                      type: string
+                    location:
+                      type: string
+                    plateform:
+                      type: string
+        responses:
+            '200':
+            description: Utilisateur créé
+            content:
+                schema:
+                type: object
+                properties:
+                    userId:
+                      type: UUID
+                    email:
+                      type: string
+
+  /auth/login:
+    post:
+        summary: connexion d'un utilisateur
+        requestBody:
+            required: true
+            content:
+            application/json:
+                schema:
+                type: object
+                properties:
+                    email:
+                      type: string
+                    password:
+                      type: string
+        responses:
+            '200':
+            description: connexion réussie
+            content:
+              schema:
+              type: object
+              properties:
+                userId:
+                  type: UUID
+                email:
+                  type: string
+
+  /auth/userData:
+    post:
+        summary: recupérer les données d'un utilisateur
+        requestBody:
+            required: true
+            content:
+            application/json:
+                schema:
+                type: object
+                properties:
+                    Username:
+                      type: string
+                    hash_passwd_b64:
+                      type: string
+        responses:
+          '200':
+          description: recupération des données
+          content:
+            schema:
+            type: object
+            properties:
+              userId:
+                type: UUID
+              email:
+                type: string
+
+  /auth/updateProfile:
+    put:
+        summary: Mettre à jour le profil d'un utilisateur
+        requestBody:
+            required: true
+            content:
+            application/json:
+                schema:
+                type: object
+                properties:
+                    userId:
+                      type: UUID
+                    email:
+                      type: string
+                    password:
+                      type: string
+        responses:
+          '200':
+          description: Profil mis à jour
+          content:
+            schema:
+            type: object
+            properties:
+              userId:
+                type: UUID
+              email:
+                type: string
+
+  /auth/connexionHistory:
+    post:
+        summary: Récupérer l'historique des connexions d'un utilisateur
+        requestBody:
+            required: true
+            content:
+            application/json:
+                schema:
+                type: object
+                properties:
+                    userId:
+                      type: UUID
+        responses:
+          '200':
+          description: Historique des connexions
+          content:
+            schema:
+            type: object
+            properties:
+              loginId:
+                type: Long
+              userId:
+                type: UUID
+              login_time:
+                type: timestamp
+              location:
+                type: string
+              plateform:
+                type: string
+
+
+  /report/submitOptions:
+    post:
+        summary: Soumettre les options de rapport
+        requestBody:
+            required: true
+            content:
+            application/json:
+                schema:
+                type: object
+                properties:
+                    userId:
+                      type: UUID
+                    options:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          value:
+                            type: boolean
+                          option1:
+                            type: string
+                    pdfPassword:
+                      type: string
+        responses:
+          '200':
+          description: Options de rapport soumises
+          content:
+            schema:
+            type: object
+            properties:
+              message:
+                type: string
+
+  /report/scanPorts:
+    post:
+        summary: stocker les resultats du module de scan de ports
+        requestBody:
+            required: true
+            content:
+            application/json:
+                schema:
+                type: object
+                properties:
+                    reportId:
+                      type: Long
+                    host:
+                      type: string
+                    message:
+                      type: string
+                    error:
+                      type: string
+                    scanRange:
+                      type: string
+        responses:
+          '200':
+          description: resultats stockés
+          content:
+            schema:
+            type: object
+            properties:
+              message:
+                type: string
+
+  /report/bfssh:
+    post:
+        summary: stocker les resultats du module de brute force ssh
+        requestBody:
+            required: true
+            content:
+            application/json:
+                schema:
+                type: object
+                properties:
+                    id rapport:
+                      type: Long
+                    host:
+                      type: string
+                    message:
+                      type: string
+                    error:
+                      type: string
+                    user:
+                      type: string
+                    password:
+                      type: string
+        responses:
+          '200':
+          description: resultats stockés
+          content:
+            schema:
+            type: object
+            properties:
+              message:
+                type: string
+
+  /report/bffwifi:
+    post:
+      summary: stocker les resultats du module de brute force wifi
+      requestBody:
+          required: true
+          content:
+          application/json:
+              schema:
+              type: object
+              properties:
+                  id rapport:
+                    type: Long
+                  logContent:
+                    type: string
+      responses:
+        '200':
+        description: resultats stockés
+        content:
+          schema:
+          type: object
+          properties:
+            message:
+              type: string
+
+  /report/analyseCVE:
+    post:
+      summary: stocker les resultats du module d'analyse de CVE
+      requestBody:
+          required: true
+          content:
+          application/json:
+              schema:
+              type: object
+              properties:
+                  id rapport:
+                    type: Long
+                  option:
+                    type: string
+      responses:
+        '200':
+        description: resultats stockés
+        content:
+          schema:
+          type: object
+          properties:
+            message:
+              type: string
+
+  /report/UserReports:
+    post:
+      summary: Récupérer les rapports d'un utilisateur
+      requestBody:
+          required: true
+          content:
+          application/json:
+              schema:
+              type: object
+              properties:
+                  userId:
+                    type: UUID
+      responses:
+        '200':
+        description: Rapports récupérés
+        content:
+          schema:
+          type: object
+          properties:
+            reports:
+              type: array
+              items:
+                type: object
+                properties:
+                reportId:
+                    type: Long
+                reportName:
+                    type: String
+                encryptedFile:
+                    type: String
+                isRead:
+                    type: boolean
+
+  /report/report-read:
+    post:
+      summary: Marquer un rapport comme lu
+      requestBody:
+          required: true
+          content:
+          application/json:
+              schema:
+              type: object
+              properties:
+                  reportId:
+                    type: Long
+                  userId:
+                    type: UUID
+      responses:
+        '200':
+        description: Rapport marqué comme lu
+        content:
+          schema:
+          type: object
+          properties:
+            message:
+              type: string
+
+  /report/report-available:
+    post:
+      summary: Marquer les rapports d'un utilisateur comme disponible pour les envoyer au front
+      requestBody:
+          required: true
+          content:
+          application/json:
+              schema:
+              type: object
+              properties:
+                  userId:
+                    type: UUID
+      responses:
+        '200':
+        description: Rapports marqués comme disponibles
+        content:
+          schema:
+          type: object
+          properties:
+            message:
+              type: string

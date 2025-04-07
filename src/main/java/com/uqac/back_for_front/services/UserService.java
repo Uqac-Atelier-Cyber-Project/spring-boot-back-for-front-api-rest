@@ -9,6 +9,7 @@ import com.uqac.back_for_front.repositories.UserRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-
     private final UserRepository userRepository;
     private final LoginHistoryRepository loginHistoryRepository;
     private final PasswordEncoder passwordEncoder; // Utilisé pour encoder les mots de passe
