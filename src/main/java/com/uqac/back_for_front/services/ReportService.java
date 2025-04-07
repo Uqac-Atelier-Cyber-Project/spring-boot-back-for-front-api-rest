@@ -31,12 +31,11 @@ public class ReportService {
     @Autowired
     private ApiProperties apiProperties;
 
-    private final ReportRepository ReportRepository;
+    private final ReportRepository reportRepository;
     private final PendingAnalysisRepository pendingAnalysisRepository;
     private final ResultRepository resultRepository;
     private final RestTemplate restTemplate;
     private static final Logger logger = Logger.getLogger(ReportService.class.getName());
-    private final ReportRepository reportRepository;
 
     /**
      * recuperer tous les rapports pour un utilisateur donné
@@ -46,11 +45,11 @@ public class ReportService {
      */
     public ReportsResponse userReports(ReportsRequest request) {
         // verification
-        if (!ReportRepository.existsByUserId(request.getUserId())) {
+        if (!reportRepository.existsByUserId(request.getUserId())) {
             return new ReportsResponse(new ArrayList<>()); // si l'utilisateur n'as pas de rapport, retourner une liste vide
         }
         // Récupération des rapports de l'utilisateur donné
-        List<Report> reports = ReportRepository.findByUserIdAndEncryptedFileIsNotNull(request.getUserId());
+        List<Report> reports = reportRepository.findByUserIdAndEncryptedFileIsNotNull(request.getUserId());
 
         // Création de la réponse avec transformation en DTO
         List<ReportDTO> reportDTOs = reports.stream()
@@ -83,7 +82,7 @@ public class ReportService {
                 .triggerDate(java.time.Instant.now())
                 .build();
 
-        ReportRepository.save(report);
+        reportRepository.save(report);
 
 
         // creation resultat set a null
@@ -273,8 +272,9 @@ public class ReportService {
         if (optionalReport.isPresent()) {
             Report report = optionalReport.get();
             report.setIsRead(true);
-            ReportRepository.save(report);
-        } else {
+            reportRepository.save(report);
+        }
+        else {
             return "Rapport non trouvé.";
         }
 
@@ -321,16 +321,23 @@ public class ReportService {
         resultRepository.save(result);
 
         // Update the PendingAnalysis step3 to true
-        Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(Long.valueOf(request.getReportId()));
+        try {
+            Optional<PendingAnalysis> optionalPendingAnalysis = pendingAnalysisRepository.findByReportId(Long.valueOf(request.getReportId()));
 
-        if (optionalPendingAnalysis.isPresent()) {
-            PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
-            pendingAnalysis.setStep4(true);
-            pendingAnalysisRepository.save(pendingAnalysis);
-        } else {
-            return AnalysisCVEResponse.builder().message("PendingAnalysis not found").build();
+            if (optionalPendingAnalysis.isPresent()) {
+                PendingAnalysis pendingAnalysis = optionalPendingAnalysis.get();
+                pendingAnalysis.setStep4(true);
+                pendingAnalysisRepository.save(pendingAnalysis);
+            } else {
+                return AnalysisCVEResponse.builder().message("PendingAnalysis not found").build();
+            }
+        } catch (javax.persistence.NonUniqueResultException e) {
+            // Si plusieurs résultats sont renvoyés pour une seule ID
+            return AnalysisCVEResponse.builder().message("Multiple PendingAnalysis found for this report ID").build();
+        } catch (Exception e) {
+            // Gérer d'autres exceptions
+            return AnalysisCVEResponse.builder().message("An error occurred: " + e.getMessage()).build();
         }
-
         return AnalysisCVEResponse.builder().message("CVE analysis request submitted successfully").build();
     }
 
@@ -344,7 +351,7 @@ public class ReportService {
 
         // Find all reports wich file-encrypted is null for a specific userid
 
-        List<Report> reports = ReportRepository.findByUserId(request.getUserId());
+        List<Report> reports = reportRepository.findByUserId(request.getUserId());
         List<Report> reportsPending = reports.stream().filter(report -> report.getEncryptedFile() == null).toList();
 
         List<String> pendingReports = new ArrayList<>();
