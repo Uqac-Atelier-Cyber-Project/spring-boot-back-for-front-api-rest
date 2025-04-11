@@ -18,7 +18,7 @@ public class BffWifiRequest {
     public String toString() {
         return "WifiResult{" +
                 "reportId=" + reportId +
-                ", logContent='" + logContent + '\'' +
+                //", logContent='" + logContent + '\'' +
                 ", accessPointName='" + accessPointName + '\'' +
                 ", accessPointBSSID='" + accessPointBSSID + '\'' +
                 ", encryption='" + encryption + '\'' +
